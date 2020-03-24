@@ -1,0 +1,174 @@
+---
+title: "Casos de COVID-19 en Ecuador"
+author: "Lorena Abad"
+date: "`r format(Sys.time(), '%d.%m.%Y')`"
+keep_md: true
+output: 
+  html_document:
+    toc: true
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo = F, include = F}
+# Cargar librerias 
+library(ggplot2)
+library(dplyr)
+library(sf)
+library(tmap)
+library(plotly)
+library(reshape2)
+
+# Leer datos recopilados por Pablo Reyes (https://twitter.com/PabloRA19/status/1241964053406285825)
+casos = read.csv('https://raw.githubusercontent.com/pablora19/COVID19_EC/master/covid_ec.csv', sep = ',') %>% 
+  mutate(fecha = as.Date(fecha, format = '%d/%m/%Y'))
+
+# Convertir NaN en NA
+is.nan.data.frame <- function(x){
+  do.call(cbind, lapply(x, is.nan))
+}
+casos[is.nan(casos)] <- NA
+
+# Corregir errores:
+## Codigos de cantones no tienen el zero inicial
+## Crear columna con codigo de provincia para union
+casos_canton = casos %>% 
+  # mutate(id_canton = ifelse(nombre_canton == 'salitre', 919, id_canton)) %>% 
+  mutate(id_canton = as.factor(sprintf("%04d", id_canton))) %>% 
+  mutate(id_prov = substr(id_canton, start = 1, stop = 2))
+
+# Calcular casos acumulados por provincia para graficar 
+casos_provincia = casos_canton %>% group_by(fecha, id_prov) %>% 
+  summarize(casos_confirmados_prov = sum(casos_confirmados)) 
+
+# Extraer info relevante a nivel nacional
+casos_nacional = casos_canton %>% group_by(fecha) %>% 
+  mutate(casos_confirmados = sum(casos_confirmados)) %>% 
+  summarize_at(vars(7:15), first)
+
+# Descargar provincias y cantones de Ecuador
+if (!dir.exists("data")) dir.create("data")
+src = 'http://www.ecuadorencifras.gob.ec//documentos/web-inec/Cartografia/Clasificador_Geografico/2015/SHP.zip'
+dst = 'data/inec.zip'
+if (!file.exists(dst)) {
+  download.file(src, dst)
+  unzip(dst, exdir = "data")
+}
+
+# Cargar los archivos
+provincias = st_read('data/SHP/nxprovincias.shp') %>% st_simplify(dTolerance = 1000)
+cantones = st_read('data/SHP/nxcantones.shp') %>% st_simplify(dTolerance = 500)
+
+# Añadir conteo de casos a capa de provincias
+provincias_casos = inner_join(provincias, casos_provincia, by = c('DPA_PROVIN' = 'id_prov'))
+
+# Añadir conteo de casos a capa de cantones
+cantones_casos = inner_join(cantones, casos_canton, by = c('DPA_CANTON'='id_canton'))
+
+# Crear un mapa animado para mostrar la evolución de casos por día.
+tm = tm_shape(provincias) +
+  tm_polygons(col = 'grey80', border.col = 'white', border.alpha = 1, lwd = 0.5) +
+  tm_shape(provincias_casos) +
+  tm_polygons(
+    title = 'Casos Confirmados',
+    col = 'casos_confirmados_prov', 
+    border.col = 'white',
+    border.alpha = 0.5,
+    lwd = 1,
+    palette = 'YlOrRd',
+    style = 'jenks', 
+    legend.show = F
+  ) +
+  tm_facets(along = 'fecha', free.coords = FALSE) +
+  tm_shape(provincias_casos %>% st_cast('POLYGON')) +
+  tm_text(text = 'casos_confirmados_prov', remove.overlap = F, size = 0.4, shadow = F) +
+  tm_facets(along = 'fecha', free.coords = FALSE) +
+  tm_layout(main.title.size = 0.6, frame = F)
+tmap_animation(tm, filename = 'covid_prov.gif', width = 1200, height = 750, delay=60, restart.delay = 100)
+```
+
+
+```{r, echo = F, out.width= "75%", out.extra='style="float:right; padding:10px"'}
+knitr::include_graphics('covid_prov.gif')
+```
+
+*Trabajo en progreso*
+
+Visualización de los casos de COVID-19 en el Ecuador, según lo reporta el [Servicio Nacional de Gestión de Riesgos y Emergencias](https://www.gestionderiesgos.gob.ec/informes-de-situacion-covid-19-desde-el-13-de-marzo-del-2020/) con los [datos recopilados por Pablo Reyes A](https://github.com/pablora19/COVID19_EC). La actualización de los mismos dependerá de la actualización de los datos en el SNG. Los datos se observan a nivel Nacional, por Provincia y por Cantón. Los gráficos en cada sección son interactivos. 
+
+El 29 de febrero de 2020 se confirmó el primer caso de esta enfermedad en el Ecuador. Al **`r format(max(cantones_casos$fecha), '%d.%m.%Y')`**, el cerco epidemiológico activo es de **`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(cerco_epid_act)`**, con **`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(casos_confirmados)`** casos confirmados, **`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(casos_sosp)`** casos con sospecha y un total de **`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(muestras_tomadas)`** muestras tomadas.
+
+## Casos a nivel Nacional
+
+```{r, include = F}
+g1 = casos_nacional %>% select(fecha, casos_confirmados, fallecidos, recuperados) %>%
+  melt(id = 'fecha') %>% 
+  ggplot() +
+  geom_area(aes(x = fecha, y = value, fill = variable)) +
+  xlab('') + ylab('') +
+  scale_fill_manual('', values = c('grey', 'red', 'green'), labels = c('Casos Confirmados', 'Fallecidos', 'Recuperados')) 
+```
+
+```{r, echo = F, fig.width=10, message=F, warning=F}
+g1 %>% ggplotly()
+```
+
+
+
+## Evolución de casos por provincia
+
+```{r, include = F}
+## Cambiar datos para poder incluir facetas con y sin Guayas
+# prov_casos_2 <-  rbind(
+#     cbind(provincias_casos, faceter = "Todas las Provincias")
+#     , cbind(provincias_casos[provincias_casos$DPA_DESPRO != "GUAYAS" ,], faceter = "Sin Guayas")
+#     #other subsets go here...
+# )
+
+## Crear una paleta de colores aleatorios
+library(randomcoloR)
+n = length(unique(provincias_casos$DPA_PROVIN))
+palette = distinctColorPalette(n)
+
+g = ggplot(
+  data = provincias_casos, aes(x = fecha, y = casos_confirmados_prov, color = DPA_DESPRO)
+  ) +
+  geom_line() + geom_point() +
+  scale_color_manual('PROVINCIAS', values = palette) +
+  xlab('') + ylab('Casos Confirmados') +
+  # facet_wrap(~faceter, ncol = 2, scales = 'free_y') +
+  theme(legend.text = element_text(size = 7), legend.title = element_text(size = 8))
+```
+
+```{r, echo = F, fig.width=10}
+g %>% ggplotly()
+```
+
+## Casos por Cantón al `r format(max(cantones_casos$fecha), '%d.%m.%Y')`
+
+```{r, include = F}
+cantones_label = cantones_casos %>% filter(fecha == max(fecha)) %>%  st_cast('POLYGON')
+tmap_mode('view')
+```
+
+```{r, echo = F, fig.width=10}
+tm_shape(cantones_casos %>% filter(fecha == max(fecha))) +
+  tm_polygons(
+    title = 'Casos Confirmados',
+    col = 'casos_confirmados', 
+    border.col = 'white',
+    border.alpha = 0.5,
+    lwd = 1,
+    palette = 'YlOrRd',
+    style = 'jenks', 
+    legend.show = T, id = 'DPA_DESCAN',
+    popup.vars = c("Casos" = "casos_confirmados")
+  ) 
+  # tm_facets(along = 'fecha', free.coords = FALSE) +
+  # tm_shape(cantones_label) +
+  # tm_text(text = 'casos_confirmados', remove.overlap = F, size = 1, shadow = F)
+  # tm_facets(along = 'fecha', free.coords = FALSE) +
+  # tm_layout(main.title.size = 0.6, frame = F)
+```
+
