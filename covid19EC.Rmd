@@ -109,15 +109,13 @@ tm = tm_shape(provincias) +
 tmap_animation(tm, filename = 'covid_prov.gif', width = 1200, height = 750, delay=60, restart.delay = 150)
 ```
 
-# Situación Actual {.tabset}
+# {.tabset}
 
 ## Inicio
 
 ```{r, echo = F, out.width= "80%", out.extra='style="float:right; padding:10px"'}
 knitr::include_graphics('covid_prov.gif')
 ```
-
-*Trabajo en progreso*
 
 Situación al **`r format(max(cantones_casos$fecha), '%d de %B, %Y')`**:
 
@@ -222,6 +220,8 @@ tm_shape(cantones_casos %>% filter(fecha == max(fecha))) +
 ```
 
 ## Sobre el Sitio
+
+*Trabajo en progreso*
 
 Visualización de los casos de COVID-19 en el Ecuador, según lo reporta el [Servicio Nacional de Gestión de Riesgos y Emergencias](https://www.gestionderiesgos.gob.ec/informes-de-situacion-covid-19-desde-el-13-de-marzo-del-2020/){target="_blank"} con los [datos recopilados por Pablo Reyes A](https://github.com/pablora19/COVID19_EC){target="_blank"}. La actualización de los mismos dependerá de la actualización de los datos en el SNG y del repositiorio de Pablo Reyes A. Los datos se observan a nivel Nacional, por Provincia y por Cantón. Los gráficos en cada sección son interactivos. 
 
