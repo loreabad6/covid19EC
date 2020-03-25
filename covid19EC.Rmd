@@ -88,7 +88,7 @@ tm = tm_shape(provincias) +
   tm_facets(along = 'fecha', free.coords = FALSE) +
   tm_credits("Datos según lo reporta el Servicio Nacional de Gestión de Riesgos y Emergencias recopilados por Pablo Reyes A.") +
   tm_layout(
-    title = 'Evolución de COVID-19 en Ecuador por provincia',
+    title = 'Evolución de casos de COVID-19 en Ecuador por provincia',
     title.size = 0.7, title.position = c('left','top'),
     main.title.size = 0.6, main.title.position = 'right',
     frame = F
@@ -113,17 +113,26 @@ El 29 de febrero de 2020 se confirmó el primer caso de esta enfermedad en el Ec
 ```{r, include = F}
 g1 = casos_nacional %>% select(fecha, casos_confirmados, fallecidos, recuperados) %>%
   melt(id = 'fecha') %>% 
+  mutate(
+    variable = ifelse(
+      variable == 'fallecidos', 'Fallecidos', 
+      ifelse(variable == 'recuperados', 'Recuperados', 'Casos Confirmados')
+    )
+  ) %>% 
   ggplot() +
-  geom_area(aes(x = fecha, y = value, fill = variable)) +
+  geom_area(
+    aes(
+      x = fecha, y = value, fill = variable, group = variable,
+      text = paste0('Fecha: ', fecha, '<br>', variable, ': ', value)
+    )
+  ) +
   xlab('') + ylab('') +
-  scale_fill_manual('', values = c('grey', 'red', 'green'), labels = c('Casos Confirmados', 'Fallecidos', 'Recuperados')) 
+  scale_fill_manual('', values = c('grey', 'red', 'green'))#, labels = c('Casos Confirmados', 'Fallecidos', 'Recuperados')) 
 ```
 
 ```{r, echo = F, fig.width=10, message=F, warning=F}
-g1 %>% ggplotly()
+g1 %>% ggplotly(tooltip = 'text')
 ```
-
-
 
 ## Evolución de casos por provincia
 
@@ -141,8 +150,11 @@ n = length(unique(provincias_casos$DPA_PROVIN))
 palette = distinctColorPalette(n)
 
 g = ggplot(
-  data = provincias_casos, aes(x = fecha, y = casos_confirmados_prov, color = DPA_DESPRO)
-  ) +
+  data = provincias_casos, 
+  aes(
+    x = fecha, y = casos_confirmados_prov, color = DPA_DESPRO, group = 1,
+    text = paste('Fecha: ', fecha, '<br>', 'Casos Confirmados: ', casos_confirmados_prov, '<br>', 'Provincia: ', DPA_DESPRO)
+  )) +
   geom_line() + geom_point() +
   scale_color_manual('PROVINCIAS', values = palette) +
   xlab('') + ylab('Casos Confirmados') +
@@ -151,7 +163,7 @@ g = ggplot(
 ```
 
 ```{r, echo = F, fig.width=10}
-g %>% ggplotly()
+g %>% ggplotly(tooltip = 'text')
 ```
 
 ## Casos por Cantón al `r format(max(cantones_casos$fecha), '%d.%m.%Y')`
