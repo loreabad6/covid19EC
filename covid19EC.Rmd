@@ -113,7 +113,7 @@ tmap_animation(tm, filename = 'covid_prov.gif', width = 1200, height = 750, dela
 
 ## Inicio
 
-```{r, echo = F, out.width= "75%", out.extra='style="float:right; padding:10px"'}
+```{r, echo = F, out.width= "80%", out.extra='style="float:right; padding:10px"'}
 knitr::include_graphics('covid_prov.gif')
 ```
 
@@ -121,23 +121,20 @@ knitr::include_graphics('covid_prov.gif')
 
 Situación al **`r format(max(cantones_casos$fecha), '%d de %B, %Y')`**:
 
-<span style="color: orange; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(casos_confirmados)`**</span>
-Casos confirmados
+<center> 
+<span style="color: orange; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(casos_confirmados)`**</span><br>Casos confirmados
 
-<span style="color: red; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(fallecidos)`**</span>
-Fallecidos
+<span style="color: red; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(fallecidos)`**</span><br>Fallecidos
 
-<span style="color: green; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(recuperados)`**</span>
-Recuperados
+<span style="color: green; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(recuperados)`**</span><br>Recuperados
 
-<span style="color: grey; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(casos_sosp)`**</span>
-Casos con sospecha
+<span style="color: grey; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(casos_sosp)`**</span><br>Casos con sospecha
 
-<!-- <span style="color: grey; font-size: 18pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(cerco_epid_act)`**</span> -->
-<!-- Cerco epidemiológico activo -->
+<!-- <span style="color: grey; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(cerco_epid_act)`**</span> -->
+<!-- Cerco epidemiológico actual -->
 
-<span style="color: grey; font-size: 24pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(muestras_tomadas)`**</span>
-Muestras tomadas
+<span style="color: grey; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(muestras_tomadas)`**</span><br>Muestras tomadas
+</center>
 
 ## Casos a nivel Nacional
 
