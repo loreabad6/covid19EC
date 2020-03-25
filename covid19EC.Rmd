@@ -1,17 +1,16 @@
 ---
 title: "Casos de COVID-19 en Ecuador"
-author: "Lorena Abad"
-date: "`r format(Sys.time(), '%d.%m.%Y')`"
-keep_md: true
 output: 
-  html_document:
-    toc: true
+  html_document
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r, echo = F, include = F}
+# Definir idioma de Fecha
+Sys.setlocale("LC_TIME", "Spanish")
+
 # Cargar librerias 
 library(ggplot2)
 library(dplyr)
@@ -96,7 +95,9 @@ tm = tm_shape(provincias) +
 tmap_animation(tm, filename = 'covid_prov.gif', width = 1200, height = 750, delay=60, restart.delay = 150)
 ```
 
+# Situación Actual {.tabset}
 
+## Inicio
 
 ```{r, echo = F, out.width= "75%", out.extra='style="float:right; padding:10px"'}
 knitr::include_graphics('covid_prov.gif')
@@ -104,9 +105,7 @@ knitr::include_graphics('covid_prov.gif')
 
 *Trabajo en progreso*
 
-Visualización de los casos de COVID-19 en el Ecuador, según lo reporta el [Servicio Nacional de Gestión de Riesgos y Emergencias](https://www.gestionderiesgos.gob.ec/informes-de-situacion-covid-19-desde-el-13-de-marzo-del-2020/) con los [datos recopilados por Pablo Reyes A.](https://github.com/pablora19/COVID19_EC). La actualización de los mismos dependerá de la actualización de los datos en el SNG. Los datos se observan a nivel Nacional, por Provincia y por Cantón. Los gráficos en cada sección son interactivos. El código para reproducir este Markdown se encuentra en [Github](https://github.com/loreabad6/covid19EC).
-
-El 29 de febrero de 2020 se confirmó el primer caso de esta enfermedad en el Ecuador. Al **`r format(max(cantones_casos$fecha), '%d.%m.%Y')`**, el cerco epidemiológico activo es de **`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(cerco_epid_act)`**, con **`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(casos_confirmados)`** casos confirmados, **`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(casos_sosp)`** casos con sospecha y un total de **`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(muestras_tomadas)`** muestras tomadas.
+El 29 de febrero de 2020 se confirmó el primer caso de esta enfermedad en el Ecuador. Al **`r format(max(cantones_casos$fecha), '%d de %B, %Y')`**, el cerco epidemiológico activo es de **`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(cerco_epid_act)`**, con **`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(casos_confirmados)`** casos confirmados, **`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(casos_sosp)`** casos con sospecha y un total de **`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(muestras_tomadas)`** muestras tomadas.
 
 ## Casos a nivel Nacional
 
@@ -130,7 +129,7 @@ g1 = casos_nacional %>% select(fecha, casos_confirmados, fallecidos, recuperados
   scale_fill_manual('', values = c('grey', 'red', 'green'))#, labels = c('Casos Confirmados', 'Fallecidos', 'Recuperados')) 
 ```
 
-```{r, echo = F, fig.width=10, message=F, warning=F}
+```{r, echo = F, message=F, warning=F, out.width='100%'}
 g1 %>% ggplotly(tooltip = 'text')
 ```
 
@@ -162,18 +161,18 @@ g = ggplot(
   theme(legend.text = element_text(size = 7), legend.title = element_text(size = 8))
 ```
 
-```{r, echo = F, fig.width=10}
+```{r, echo = F, out.width='100%'}
 g %>% ggplotly(tooltip = 'text')
 ```
 
-## Casos por Cantón al `r format(max(cantones_casos$fecha), '%d.%m.%Y')`
+## Casos por Cantón al `r format(max(cantones_casos$fecha), '%d de %B, %Y')`
 
 ```{r, include = F}
 cantones_label = cantones_casos %>% filter(fecha == max(fecha)) %>%  st_cast('POLYGON')
 tmap_mode('view')
 ```
 
-```{r, echo = F, fig.width=10}
+```{r, echo = F, out.width='100%'}
 tm_shape(cantones_casos %>% filter(fecha == max(fecha))) +
   tm_polygons(
     title = 'Casos Confirmados',
@@ -193,3 +192,14 @@ tm_shape(cantones_casos %>% filter(fecha == max(fecha))) +
   # tm_layout(main.title.size = 0.6, frame = F)
 ```
 
+## Sobre el Sitio
+
+Visualización de los casos de COVID-19 en el Ecuador, según lo reporta el [Servicio Nacional de Gestión de Riesgos y Emergencias](https://www.gestionderiesgos.gob.ec/informes-de-situacion-covid-19-desde-el-13-de-marzo-del-2020/) con los [datos recopilados por Pablo Reyes A](https://github.com/pablora19/COVID19_EC). La actualización de los mismos dependerá de la actualización de los datos en el SNG. Los datos se observan a nivel Nacional, por Provincia y por Cantón. Los gráficos en cada sección son interactivos. 
+
+El código para reproducir las figuras, mapas y el sitio se encuentra en [Github](https://github.com/loreabad6/covid19EC).
+
+**Última actualización:** `r format(Sys.time(), '%d/%m/%Y %H:%M %Z')`
+
+**Autor:** Lorena Abad 
+
+**Contacto:** [Twitter](https://twitter.com/loreabad6), [GitHub](https://github.com/loreabad6)
