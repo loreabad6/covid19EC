@@ -20,8 +20,11 @@ library(plotly)
 library(reshape2)
 
 # Leer datos recopilados por Pablo Reyes (https://twitter.com/PabloRA19/status/1241964053406285825)
-casos = read.csv('https://raw.githubusercontent.com/pablora19/COVID19_EC/master/covid_ec.csv', sep = ',') %>% 
-  mutate(fecha = as.Date(fecha, format = '%d/%m/%Y'))
+# "https://raw.githubusercontent.com/loreabad6/COVID19_EC/master/covid_ec.csv"
+casos = read.csv('https://raw.githubusercontent.com/loreabad6/COVID19_EC/master/covid_ec.csv', sep = ',') %>% 
+  mutate(fecha_hora = paste(fecha, hora)) %>%
+  mutate(fecha = as.Date(fecha, format = '%d/%m/%Y')) %>% 
+  mutate(fecha_hora = as.POSIXct(fecha_hora, format = '%d/%m/%Y %H:%M'))
 
 # Convertir NaN en NA
 is.nan.data.frame <- function(x){
@@ -113,11 +116,11 @@ tmap_animation(tm, filename = 'covid_prov.gif', width = 1200, height = 750, dela
 
 ## Inicio
 
+Situación al **`r format(max(cantones_casos$fecha_hora), '%d de %B, %Y %H:%M')`**:
+
 ```{r, echo = F, out.width= "80%", out.extra='style="float:right; padding:10px"'}
 knitr::include_graphics('covid_prov.gif')
 ```
-
-Situación al **`r format(max(cantones_casos$fecha), '%d de %B, %Y')`**:
 
 <center> 
 <span style="color: orange; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(casos_confirmados)`**</span><br>Casos confirmados
@@ -160,7 +163,7 @@ g1 = casos_nacional %>% select(fecha, casos_confirmados, fallecidos, recuperados
 g1 %>% ggplotly(tooltip = 'text')
 ```
 
-## Evolución de casos por provincia
+## Casos por Provincia
 
 ```{r, include = F}
 ## Cambiar datos para poder incluir facetas con y sin Guayas
@@ -192,7 +195,9 @@ g = ggplot(
 g %>% ggplotly(tooltip = 'text')
 ```
 
-## Casos por Cantón al `r format(max(cantones_casos$fecha), '%d de %B, %Y')`
+## Casos por Cantón 
+
+Casos al `r format(max(cantones_casos$fecha_hora), '%d de %B, %Y %H:%M')`
 
 ```{r, include = F}
 cantones_label = cantones_casos %>% filter(fecha == max(fecha)) %>%  st_cast('POLYGON')
