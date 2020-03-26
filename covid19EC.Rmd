@@ -59,7 +59,9 @@ if (!file.exists(dst)) {
 }
 
 # Cargar los archivos
-provincias = st_read('data/SHP/nxprovincias.shp') %>% st_simplify(dTolerance = 1000)
+provincias = st_read('data/SHP/nxprovincias.shp') %>% 
+  st_simplify(dTolerance = 1000) %>% 
+  mutate(region = ifelse(DPA_DESPRO == 'GALAPAGOS', 'Insular', 'Continental'))
 cantones = st_read('data/SHP/nxcantones.shp') %>% st_simplify(dTolerance = 500)
 
 # Añadir conteo de casos a capa de provincias
@@ -105,8 +107,8 @@ tm = tm_shape(provincias) +
   tm_credits("Datos según lo reporta el Servicio Nacional de Gestión de Riesgos y Emergencias recopilados por Pablo Reyes A. Creado por Lorena Abad.") +
   tm_layout(
     title = 'Casos Confirmados de COVID-19 en Ecuador',
-    title.size = 0.7, title.position = c('left','top'),
-    main.title.size = 0.6, main.title.position = 'right',
+    title.size = 0.7, title.position = c('right','top'),
+    main.title.size = 0.6, main.title.position = 'left',
     frame = F
   )
 tmap_animation(tm, filename = 'covid_prov.gif', width = 1200, height = 750, delay=60, restart.delay = 150)
