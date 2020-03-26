@@ -102,7 +102,7 @@ tm = tm_shape(provincias) +
     legend.size.show = F, legend.col.show = F
   ) +
   tm_facets(along = 'fecha', free.coords = FALSE) +
-  tm_credits("Datos según lo reporta el Servicio Nacional de Gestión de Riesgos y Emergencias recopilados por Pablo Reyes A.") +
+  tm_credits("Datos según lo reporta el Servicio Nacional de Gestión de Riesgos y Emergencias recopilados por Pablo Reyes A. Creado por Lorena Abad.") +
   tm_layout(
     title = 'Casos Confirmados de COVID-19 en Ecuador',
     title.size = 0.7, title.position = c('left','top'),
@@ -123,18 +123,21 @@ knitr::include_graphics('covid_prov.gif')
 ```
 
 <center> 
+<br><br>
 <span style="color: orange; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(casos_confirmados)`**</span><br>Casos confirmados
 
 <span style="color: red; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(fallecidos)`**</span><br>Fallecidos
 
 <span style="color: green; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(recuperados)`**</span><br>Recuperados
 
+<br>
 <span style="color: grey; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(casos_sosp)`**</span><br>Casos con sospecha
+
+<span style="color: grey; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(muestras_tomadas)`**</span><br>Muestras tomadas
 
 <!-- <span style="color: grey; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(cerco_epid_act)`**</span> -->
 <!-- Cerco epidemiológico actual -->
 
-<span style="color: grey; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(muestras_tomadas)`**</span><br>Muestras tomadas
 </center>
 
 ## Casos a nivel Nacional
