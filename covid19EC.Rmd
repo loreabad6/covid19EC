@@ -369,16 +369,15 @@ tm_shape(cantones) +
 
 Visualización de los casos de COVID-19 en el Ecuador, según lo reporta el [Servicio Nacional de Gestión de Riesgos y Emergencias](https://www.gestionderiesgos.gob.ec/informes-de-situacion-covid-19-desde-el-13-de-marzo-del-2020/){target="_blank"} y el [Ministerio de Salud Pública](https://www.salud.gob.ec/gacetas-epidemiologicas-coronavirus-covid-19/){target="_blank"}.
 
-Los datos son recopilados por Pablo Reyes A en [este repositorio](https://github.com/pablora19/COVID19_EC){target="_blank"}. 
+* Los datos son recopilados por Pablo Reyes A en [este repositorio](https://github.com/pablora19/COVID19_EC){target="_blank"}. 
 
-El shapefile de provincias y cantones es obtenido del [INEC](https://www.ecuadorencifras.gob.ec/category/cartografia-2/){target="_blank"}. 
+* El shapefile de provincias y cantones es obtenido del [INEC](https://www.ecuadorencifras.gob.ec/category/cartografia-2/){target="_blank"}. 
 
-La actualización de los mismos dependerá de la actualización del repositiorio de Pablo Reyes A. 
+* La actualización de los mismos dependerá de la actualización del repositiorio de Pablo Reyes A. 
 
-Los datos se observan a nivel Nacional, por Provincia y por Cantón. Los gráficos en cada sección son interactivos. 
+* Los datos se observan a nivel Nacional, por Provincia y por Cantón. Los gráficos en cada sección son interactivos. 
 
-El código para reproducir las figuras, mapas y el sitio se encuentra en [GitHub](https://github.com/loreabad6/covid19EC){target="_blank"}. Todo es creado en R, con ayuda de los paquetes
-[rmarkdown](https://rmarkdown.rstudio.com/){target="_blank"}, [sf](https://r-spatial.github.io/sf/){target="_blank"}, [ggplot2](https://ggplot2.tidyverse.org/){target="_blank"}, [tmap](https://github.com/mtennekes/tmap){target="_blank"}, [plotly](https://plotly.com/r/){target="_blank"},
+* El código para reproducir las figuras, mapas y el sitio se encuentra en [GitHub](https://github.com/loreabad6/covid19EC){target="_blank"}. Todo es creado en R, con ayuda de los paquetes: [rmarkdown](https://rmarkdown.rstudio.com/){target="_blank"}, [sf](https://r-spatial.github.io/sf/){target="_blank"}, [ggplot2](https://ggplot2.tidyverse.org/){target="_blank"}, [tmap](https://github.com/mtennekes/tmap){target="_blank"}, [plotly](https://plotly.com/r/){target="_blank"},
 [gganimate](https://gganimate.com/){target="_blank"}, [magick](https://docs.ropensci.org/magick/){target="_blank"}, [tidyr](https://tidyr.tidyverse.org/){target="_blank"} y [dplyr](https://dplyr.tidyverse.org/){target="_blank"}.
 
 **Última actualización:** `r format(Sys.time(), '%d/%m/%Y %H:%M %Z')`
@@ -387,3 +386,10 @@ El código para reproducir las figuras, mapas y el sitio se encuentra en [GitHub
 
 <!-- https://de.wikipedia.org/wiki/Twitter#/media/Datei:Twitter_bird_logo_2012.svg -->
 **Contacto:** [![Twitter](logo/twitter.png){width=3%}](https://twitter.com/loreabad6){target="_blank"} [![Github](logo/github.png){width=3%}](https://github.com/loreabad6){target="_blank"}
+
+## Recursos adicionales
+
+* [Monitor de Crisis - EC de Juanmnl Cornejo](https://monitorec.app/)
+* [ArcGIS dashboard de Edison Veloz Rubio](http://tamucc.maps.arcgis.com/)
+* [Dashboard de Marcelo Hidalgo y John Loachamin](https://pixfall.appspot.com/)
+* [ArcGIS dashboard de ESRI-Ecuador](https://esriec.maps.arcgis.com/apps/opsdashboard/index.html#/82919cbd50fc47c6b713c89b08c3ffdd)
