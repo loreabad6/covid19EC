@@ -71,11 +71,24 @@ provincias_casos = inner_join(provincias, casos_provincia, by = c('DPA_PROVIN' =
 cantones_casos = inner_join(cantones, casos_canton, by = c('DPA_CANTON'='id_canton'))
 
 # Crear punto falso para colocar casos diarios
-point = st_sf(st_sfc(st_point(c(-85,-3))), crs = 4326) %>% st_transform(32717)
+point1 = st_sf(st_sfc(st_point(c(-85,-1.5))), crs = 4326) %>%
+  st_transform(32717)
+point2 = st_sf(st_sfc(st_point(c(-85,-3))), crs = 4326) %>% 
+  st_transform(32717)
 nacional_casos = casos_nacional %>% 
-  mutate(geometry = st_geometry(point)) %>% 
+  mutate(geometry = st_geometry(point1)) %>% 
   st_as_sf() %>% 
-  mutate(casos = paste('Total:', casos_confirmados))
+  mutate(
+    casos = paste('Casos:', casos_confirmados)
+  )
+nacional_extra = casos_nacional %>% 
+  mutate(recuperados = replace_na(recuperados, 0)) %>% 
+  mutate(geometry = st_geometry(point2)) %>% 
+  st_as_sf() %>% 
+  mutate(
+    extra = paste('Fallecidos:', fallecidos, '\n', 'Recuperados: ', recuperados)
+  )
+    
 ```
 
 ```{r, echo = F, include = F}
@@ -104,12 +117,20 @@ tm = tm_shape(provincias) +
     legend.col.show = F
   ) +
   tm_facets(along = 'fecha', free.coords = FALSE) +
+  tm_shape(nacional_extra) +
+  tm_text(
+    text = 'extra', col = 'grey50', size = 0.6,
+    shadow = T, fontface = 'bold',
+    legend.col.show = F
+  ) +
+  tm_facets(along = 'fecha', free.coords = FALSE) +
   tm_credits("Datos según lo reporta el Servicio Nacional de Gestión de Riesgos y Emergencias recopilados por Pablo Reyes A. Creado por Lorena Abad.") +
   tm_layout(
     title = 'Casos Confirmados de COVID-19 en Ecuador',
     title.size = 0.7, title.position = c('right','top'),
     main.title.size = 0.6, main.title.position = 'left',
     frame = F
+    # bg.color = 'black', title.color = 'white', main.title.color = 'white'
   )
 tmap_animation(tm, filename = 'covid_prov.gif', width = 1200, height = 750, delay=60, restart.delay = 150)
 ```
@@ -167,7 +188,12 @@ g1 = casos_nacional %>%
 ```
 
 ```{r, echo = F, message=F, warning=F, out.width='100%'}
-g1 %>% ggplotly(tooltip = 'text')
+g1 %>% ggplotly(tooltip = 'text', dynamicTicks = T) %>%
+  # rangeslider() %>% 
+  layout(legend = list(
+      orientation = "h", y = 100, x = 0.1
+    )
+  )
 ```
 
 ## Casos por Provincia
@@ -189,17 +215,25 @@ g = ggplot(
   data = provincias_casos, 
   aes(
     x = fecha, y = casos_confirmados_prov, color = DPA_DESPRO, group = 1,
-    text = paste('Fecha: ', fecha, '<br>', 'Casos Confirmados: ', casos_confirmados_prov, '<br>', 'Provincia: ', DPA_DESPRO)
+    text = paste(
+      'Fecha: ', fecha, '<br>', 
+      'Casos Confirmados: ', casos_confirmados_prov, '<br>', 
+      'Provincia: ', DPA_DESPRO)
   )) +
   geom_line() + geom_point() +
   scale_color_manual('PROVINCIAS', values = palette) +
+  scale_x_date(date_breaks = '2 day', date_labels = '%d/%m') +
   xlab('') + ylab('Casos Confirmados') +
   # facet_wrap(~faceter, ncol = 2, scales = 'free_y') +
   theme(legend.text = element_text(size = 7), legend.title = element_text(size = 8))
+
+g_log = g + scale_y_log10() + ylab ('Casos Confirmados (log10)')
 ```
 
 ```{r, echo = F, out.width='100%'}
-g %>% ggplotly(tooltip = 'text')
+plotly1 = ggplotly(g, tooltip = 'text')
+plotly2 = ggplotly(g_log, tooltip = 'text')
+plotly1
 ```
 
 ## Casos por Cantón 
@@ -212,17 +246,24 @@ tmap_mode('view')
 ```
 
 ```{r, echo = F, out.width='100%'}
-tm_shape(cantones_casos %>% filter(fecha == max(fecha))) +
+tm_shape(cantones) +
   tm_polygons(
+    alpha = 0, border.col = 'white', border.alpha = 0.5, 
+    popup.vars = NULL, group = 'Límite cantonal'
+  ) +
+  tm_shape(cantones_casos %>% filter(fecha == max(fecha))) +
+  tm_polygons(
+    group = 'Casos confirmados por Cantón',
     title = 'Casos Confirmados',
     col = 'casos_confirmados', 
+    alpha = 0.8,
     border.col = 'white',
     border.alpha = 0.5,
     lwd = 1,
     palette = 'YlOrRd',
     style = 'jenks', 
     legend.show = T, id = 'DPA_DESCAN',
-    popup.vars = c("Casos" = "casos_confirmados")
+    popup.vars = c("Casos" = "casos_confirmados", "Provincia" = "DPA_DESPRO")
   ) 
   # tm_facets(along = 'fecha', free.coords = FALSE) +
   # tm_shape(cantones_label) +
