@@ -7,6 +7,12 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+```{r, echo=FALSE}
+htmltools::img(src = 'https://www.salud.gob.ec/wp-content/uploads/2020/03/img21.jpg',# knitr::image_uri(file.path('logo','covid.png')), 
+               alt = 'logo', 
+               style = 'position:absolute; top:0; right:0; padding:50px; width:15%')
+```
+
 ```{r, echo = F, include = F}
 # Definir idioma de Fecha
 Sys.setlocale("LC_TIME", "Spanish")
@@ -139,7 +145,7 @@ tmap_animation(tm, filename = 'covid_prov.gif', width = 1200, height = 750, dela
 
 ## Inicio
 
-Situación al **`r format(max(cantones_casos$fecha_hora), '%d de %B, %Y %H:%M')`**:
+Situación al **`r format(max(cantones_casos$fecha_hora), '%d de %B %H:%M')`**:
 
 ```{r, echo = F, out.width= "80%", out.extra='style="float:right; padding:10px"'}
 knitr::include_graphics('covid_prov.gif')
@@ -163,38 +169,118 @@ knitr::include_graphics('covid_prov.gif')
 
 </center>
 
-## Casos a nivel Nacional
+## Casos a nivel Nacional {.tabset}
+
+### Estado de personas contagiadas
 
 ```{r, include = F}
-g1 = casos_nacional %>% 
-  select(fecha, casos_confirmados, fallecidos, recuperados) %>%
-  gather(variable, value, -fecha) %>% 
-  # melt(id = 'fecha') %>% 
+casos_plot = casos_nacional %>% 
+  select(fecha, fallecidos, recuperados, hosp_est, hosp_pron_res, estables_aislamiento_domiliciario, casos_confirmados) %>%
+  gather(variable, value, -fecha, - casos_confirmados) %>% 
   mutate(
-    variable = ifelse(
+    variable = factor(ifelse(
       variable == 'fallecidos', 'Fallecidos', 
-      ifelse(variable == 'recuperados', 'Recuperados', 'Casos Confirmados')
-    )
+      ifelse(variable == 'recuperados', 'Recuperados', 
+      ifelse(variable == 'hosp_est', 'Hospitalizados estables',
+      ifelse(variable == 'hosp_pron_res','Hospitalizados con pronóstico reservado',
+      ifelse(variable == 'estables_aislamiento_domiliciario', 'Estables en aislamiento domiciliario', ''
+    ))))), 
+    levels = c('Estables en aislamiento domiciliario', 'Hospitalizados estables', 'Hospitalizados con pronóstico reservado', 'Fallecidos', 'Recuperados'),
+    ordered = T)
   ) %>% 
-  ggplot() +
-  geom_area(
+  mutate(legend_label = paste0(variable, ": ", value))
+
+g1 = ggplot(casos_plot) +
+  geom_col(
     aes(
       x = fecha, y = value, fill = variable, group = variable,
       text = paste0('Fecha: ', fecha, '<br>', variable, ': ', value)
     )
   ) +
+  geom_point(aes(x = fecha, y = casos_confirmados,
+                 text = paste0('Fecha: ', fecha, '<br>', 'Casos confirmados', ': ', casos_confirmados)
+                 )) +
+  geom_line(aes(x = fecha, y = casos_confirmados)) +
   xlab('') + ylab('') +
-  scale_fill_manual('', values = c('grey', 'red', 'green'))#, labels = c('Casos Confirmados', 'Fallecidos', 'Recuperados')) 
+  scale_fill_manual(
+    'Estado de personas contagiadas', 
+    # labels = casos_plot %>% filter(fecha == max(fecha)) %>% select(legend_label) %>% as.vector(),
+    values = c('grey70', 'blue', 'darkblue', 'red', 'green')
+  ) +
+  scale_x_date(date_breaks = '2 day', date_labels = '%d/%m') +
+  theme(
+    panel.background = element_rect(fill = 'grey95')
+  )
 ```
 
 ```{r, echo = F, message=F, warning=F, out.width='100%'}
 g1 %>% ggplotly(tooltip = 'text', dynamicTicks = T) %>%
   # rangeslider() %>% 
   layout(legend = list(
-      orientation = "h", y = 100, x = 0.1
+    # title = list(text = 'Estado de personas contagiadas'),
+    orientation = "v", y = 0.95, x = 0.05, bgcolor = "rgba(0, 0, 0, 0)"
     )
   )
 ```
+
+### Casos por estado del paciente y grupo etario
+
+```{r, echo = F, include = F}
+## Datos del MSP
+msp = read.csv('https://raw.githubusercontent.com/pablora19/COVID19_EC/master/age%20range%20-%20alive_deads.csv', encoding = 'UTF-8') %>% 
+  mutate(
+    Fecha = as.Date(Fecha, format = '%d/%m/%Y'),
+    rango.edad = factor(rango.edad, 
+                        levels = c('<1 año', '1 - 4 años', '5 - 9 años', 
+                                   '10 - 14 años', '15 - 19 años', 
+                                   '20 - 49 años', '50 - 64 años', '> 65 años'),
+                        ordered = T)
+  ) %>% 
+  gather(estado, casos, -Fecha, -rango.edad, -BoletinMSP) %>% 
+  rename('Rango de Edad' = rango.edad)
+
+g2 = ggplot(msp) + 
+  geom_col(aes(y = casos, x = Fecha, fill = `Rango de Edad`), 
+           position = position_dodge()) + 
+  facet_wrap(~estado, scales = 'free_y', nrow = 2) +
+  scale_x_date(date_breaks = '1 day', date_labels = '%d/%m') +
+  xlab('') + ylab('') +
+  theme(panel.background = element_rect(fill = 'grey95'))
+```
+
+```{r, echo = F, message=F, warning=F, out.width='100%'}
+g2 %>% ggplotly(dynamicTicks = F)
+```
+
+### Casos por género y grupo etario 
+
+```{r, echo = F, include = F}
+## Datos del MSP
+msp2 = read.csv('https://raw.githubusercontent.com/pablora19/COVID19_EC/master/age%20range%20-%20gender%20fem_mal%20.csv') %>% #, encoding = 'UTF-8') %>% 
+  mutate(
+    Fecha = as.Date(Fecha, format = '%d/%m/%Y'),
+    Rango.edad = factor(Rango.edad, 
+                        levels = c('<1 año', '1 - 4 años', '5 - 9 años', 
+                                   '10 - 14 años', '15 - 19 años', 
+                                   '20 - 49 años', '50 - 64 años', '> 65 años'),
+                        ordered = T)
+  ) %>% 
+  gather(genero, casos, -Fecha, -Rango.edad, -BoletinMSP) %>% 
+  rename('Rango de Edad' = Rango.edad)
+
+g3 = ggplot(msp2) + 
+  geom_col(aes(y = casos, x = Fecha, fill = `Rango de Edad`), 
+           position = position_dodge()) + 
+  facet_wrap(~genero, nrow = 1) +
+  scale_x_date(date_breaks = '2 day', date_labels = '%d/%m') +
+  xlab('') + ylab('') +
+  theme(panel.background = element_rect(fill = 'grey95'))
+```
+
+```{r, echo = F, message=F, warning=F, out.width='100%'}
+g3 %>% ggplotly(dynamicTicks = F)
+```
+
 
 ## Casos por Provincia
 
@@ -214,7 +300,8 @@ palette = distinctColorPalette(n)
 g = ggplot(
   data = provincias_casos, 
   aes(
-    x = fecha, y = casos_confirmados_prov, color = DPA_DESPRO, group = 1,
+    x = fecha, y = casos_confirmados_prov, color = DPA_DESPRO, group = 1, 
+    #frame = fecha, 
     text = paste(
       'Fecha: ', fecha, '<br>', 
       'Casos Confirmados: ', casos_confirmados_prov, '<br>', 
@@ -225,7 +312,11 @@ g = ggplot(
   scale_x_date(date_breaks = '2 day', date_labels = '%d/%m') +
   xlab('') + ylab('Casos Confirmados') +
   # facet_wrap(~faceter, ncol = 2, scales = 'free_y') +
-  theme(legend.text = element_text(size = 7), legend.title = element_text(size = 8))
+  theme(
+    legend.text = element_text(size = 7), 
+    legend.title = element_text(size = 8), 
+    panel.background = element_rect(fill = 'grey95')
+    )
 
 g_log = g + scale_y_log10() + ylab ('Casos Confirmados (log10)')
 ```
@@ -233,7 +324,7 @@ g_log = g + scale_y_log10() + ylab ('Casos Confirmados (log10)')
 ```{r, echo = F, out.width='100%'}
 plotly1 = ggplotly(g, tooltip = 'text')
 plotly2 = ggplotly(g_log, tooltip = 'text')
-plotly1
+plotly1 
 ```
 
 ## Casos por Cantón 
@@ -276,13 +367,23 @@ tm_shape(cantones) +
 
 *Trabajo en progreso*
 
-Visualización de los casos de COVID-19 en el Ecuador, según lo reporta el [Servicio Nacional de Gestión de Riesgos y Emergencias](https://www.gestionderiesgos.gob.ec/informes-de-situacion-covid-19-desde-el-13-de-marzo-del-2020/){target="_blank"} con los [datos recopilados por Pablo Reyes A](https://github.com/pablora19/COVID19_EC){target="_blank"}. El shapefile de provincias y cantones es obtenido del [INEC](https://www.ecuadorencifras.gob.ec/category/cartografia-2/){target="_blank"}. La actualización de los mismos dependerá de la actualización de los datos en el SNG y del repositiorio de Pablo Reyes A. Los datos se observan a nivel Nacional, por Provincia y por Cantón. Los gráficos en cada sección son interactivos. 
+Visualización de los casos de COVID-19 en el Ecuador, según lo reporta el [Servicio Nacional de Gestión de Riesgos y Emergencias](https://www.gestionderiesgos.gob.ec/informes-de-situacion-covid-19-desde-el-13-de-marzo-del-2020/){target="_blank"} y el [Ministerio de Salud Pública](https://www.salud.gob.ec/gacetas-epidemiologicas-coronavirus-covid-19/){target="_blank"}.
+
+Los datos son recopilados por Pablo Reyes A en [este repositorio](https://github.com/pablora19/COVID19_EC){target="_blank"}. 
+
+El shapefile de provincias y cantones es obtenido del [INEC](https://www.ecuadorencifras.gob.ec/category/cartografia-2/){target="_blank"}. 
+
+La actualización de los mismos dependerá de la actualización del repositiorio de Pablo Reyes A. 
+
+Los datos se observan a nivel Nacional, por Provincia y por Cantón. Los gráficos en cada sección son interactivos. 
 
 El código para reproducir las figuras, mapas y el sitio se encuentra en [GitHub](https://github.com/loreabad6/covid19EC){target="_blank"}. Todo es creado en R, con ayuda de los paquetes
-[rmarkdown](https://rmarkdown.rstudio.com/){target="_blank"}, [sf](https://r-spatial.github.io/sf/){target="_blank"}, [ggplot2](https://ggplot2.tidyverse.org/){target="_blank"}, [tmap](https://github.com/mtennekes/tmap){target="_blank"}, [plotly](https://plotly.com/r/){target="_blank"}, [tidyr](https://tidyr.tidyverse.org/){target="_blank"} y [dplyr](https://dplyr.tidyverse.org/){target="_blank"}.
+[rmarkdown](https://rmarkdown.rstudio.com/){target="_blank"}, [sf](https://r-spatial.github.io/sf/){target="_blank"}, [ggplot2](https://ggplot2.tidyverse.org/){target="_blank"}, [tmap](https://github.com/mtennekes/tmap){target="_blank"}, [plotly](https://plotly.com/r/){target="_blank"},
+[gganimate](https://gganimate.com/){target="_blank"}, [magick](https://docs.ropensci.org/magick/){target="_blank"}, [tidyr](https://tidyr.tidyverse.org/){target="_blank"} y [dplyr](https://dplyr.tidyverse.org/){target="_blank"}.
 
 **Última actualización:** `r format(Sys.time(), '%d/%m/%Y %H:%M %Z')`
 
 **Autor:** Lorena Abad 
 
-**Contacto:** [Twitter](https://twitter.com/loreabad6){target="_blank"}, [GitHub](https://github.com/loreabad6){target="_blank"}
+<!-- https://de.wikipedia.org/wiki/Twitter#/media/Datei:Twitter_bird_logo_2012.svg -->
+**Contacto:** [![Twitter](logo/twitter.png){width=3%}](https://twitter.com/loreabad6){target="_blank"} [![Github](logo/github.png){width=3%}](https://github.com/loreabad6){target="_blank"}
