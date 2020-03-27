@@ -8,7 +8,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r, echo=FALSE}
-htmltools::img(src = 'https://www.salud.gob.ec/wp-content/uploads/2020/03/img21.jpg',# knitr::image_uri(file.path('logo','covid.png')), 
+#' https://cdn4.iconfinder.com/data/icons/coronavirus-glyph/64/coronavirus-sars-mers-flu-virus-influenza-512.png
+htmltools::img(src = 'https://www.salud.gob.ec/wp-content/uploads/2020/03/img21.jpg ',
                alt = 'logo', 
                style = 'position:absolute; top:0; right:0; padding:50px; width:15%')
 ```
@@ -387,9 +388,9 @@ Visualización de los casos de COVID-19 en el Ecuador, según lo reporta el [Ser
 <!-- https://de.wikipedia.org/wiki/Twitter#/media/Datei:Twitter_bird_logo_2012.svg -->
 **Contacto:** [![Twitter](logo/twitter.png){width=3%}](https://twitter.com/loreabad6){target="_blank"} [![Github](logo/github.png){width=3%}](https://github.com/loreabad6){target="_blank"}
 
-## Recursos adicionales
+## Recursos Adicionales
 
-* [Monitor de Crisis - EC de Juanmnl Cornejo](https://monitorec.app/)
-* [ArcGIS dashboard de Edison Veloz Rubio](http://tamucc.maps.arcgis.com/)
-* [Dashboard de Marcelo Hidalgo y John Loachamin](https://pixfall.appspot.com/)
-* [ArcGIS dashboard de ESRI-Ecuador](https://esriec.maps.arcgis.com/apps/opsdashboard/index.html#/82919cbd50fc47c6b713c89b08c3ffdd)
+* [Monitor de Crisis - EC de Juanmnl Cornejo](https://monitorec.app/){target="_blank"}
+* [ArcGIS dashboard de Edison Veloz Rubio](http://tamucc.maps.arcgis.com/){target="_blank"}
+* [Dashboard de Marcelo Hidalgo y John Loachamin](https://pixfall.appspot.com/){target="_blank"}
+* [ArcGIS dashboard de ESRI-Ecuador](https://esriec.maps.arcgis.com/apps/opsdashboard/index.html#/82919cbd50fc47c6b713c89b08c3ffdd){target="_blank"}
