@@ -349,8 +349,7 @@ Casos al `r format(max(cantones_casos$fecha_hora), '%d de %B, %Y %H:%M')`
 ```{r, include = F}
 provincia_label = provincias_casos %>% filter(fecha == max(fecha)) %>%  st_cast('POLYGON')
 provincias_plot = provincias_casos %>% 
-      filter(fecha == max(fecha)) # %>% 
-      # mutate(fallecidos = as.integer(ifelse(fallecidos == 0, NA, fallecidos)))
+      filter(fecha == max(fecha))
 tmap_mode('view')
 ```
 
@@ -374,7 +373,8 @@ tm_shape(provincias) +
     palette = 'YlOrRd',
     style = 'jenks', 
     legend.show = T, id = 'DPA_DESPRO',
-    popup.vars = c("Casos" = "casos_confirmados_prov", "Fallecidos" = "fallecidos")
+    popup.vars = c("Casos" = "casos_confirmados_prov", "Fallecidos" = "fallecidos"),
+    popup.format = list(digits = 0)
   ) 
   # tm_shape(provincias_plot %>% st_centroid(of_largest_polygon = T)) +
   # tm_dots(
