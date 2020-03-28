@@ -229,7 +229,9 @@ g1 = ggplot(casos_plot) +
 ```{r, echo = F, message=F, warning=F, out.width='100%'}
 g1 %>% ggplotly(tooltip = 'text', dynamicTicks = T) %>%
   # rangeslider() %>% 
-  layout(legend = list(
+  layout(
+    hovermode = 'compare',
+    legend = list(
     # title = list(text = 'Estado de personas contagiadas'),
     orientation = "v", y = 0.95, x = 0.05, bgcolor = "rgba(0, 0, 0, 0)"
     )
