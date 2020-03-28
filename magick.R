@@ -1,3 +1,4 @@
+library(dplyr)
 # Leer datos recopilados por Pablo Reyes (https://twitter.com/PabloRA19/status/1241964053406285825)
 # "https://raw.githubusercontent.com/loreabad6/COVID19_EC/master/covid_ec.csv"
 casos = read.csv('https://raw.githubusercontent.com/pablora19/COVID19_EC/master/covid_ec.csv', sep = ',') %>% 

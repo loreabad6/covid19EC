@@ -51,6 +51,16 @@ casos_canton = casos %>%
 casos_provincia = casos_canton %>% group_by(fecha, id_prov) %>% 
   summarize(casos_confirmados_prov = sum(casos_confirmados)) 
 
+# Añadir muertes por provincia
+muertes_prov = read.csv('https://raw.githubusercontent.com/pablora19/COVID19_EC/master/deaths%20by%20province%20from%2026_03_2020.csv') %>% 
+  mutate(
+    fecha = as.Date(fecha, format = '%d/%m/%Y'),
+    id_prov = as.factor(sprintf("%02d", id_provincia))
+  ) %>% 
+  select(fecha, id_prov, fallecidos)
+
+casos_provincia = casos_provincia %>% left_join(muertes_prov, by = c('fecha','id_prov'))
+
 # Extraer info relevante a nivel nacional
 casos_nacional = casos_canton %>% group_by(fecha) %>% 
   mutate(casos_confirmados = sum(casos_confirmados)) %>% 
@@ -72,7 +82,9 @@ provincias = st_read('data/SHP/nxprovincias.shp') %>%
 cantones = st_read('data/SHP/nxcantones.shp') %>% st_simplify(dTolerance = 500)
 
 # Añadir conteo de casos a capa de provincias
-provincias_casos = inner_join(provincias, casos_provincia, by = c('DPA_PROVIN' = 'id_prov'))
+provincias_casos = inner_join(
+  provincias, casos_provincia, by = c('DPA_PROVIN' = 'id_prov')
+)
 
 # Añadir conteo de casos a capa de cantones
 cantones_casos = inner_join(cantones, casos_canton, by = c('DPA_CANTON'='id_canton'))
@@ -114,7 +126,7 @@ tm = tm_shape(provincias) +
     legend.show = F
   ) +
   tm_facets(along = 'fecha', free.coords = FALSE) +
-  tm_shape(provincias_casos %>% st_centroid()) +
+  tm_shape(provincias_casos %>% st_centroid(of_largest_polygon = T)) +
   tm_text(text = 'casos_confirmados_prov', size = 0.4, bg.color = 'white', bg.alpha = 0.5) +
   tm_facets(along = 'fecha', free.coords = FALSE) +
   tm_shape(nacional_casos) +
@@ -224,7 +236,7 @@ g1 %>% ggplotly(tooltip = 'text', dynamicTicks = T) %>%
   )
 ```
 
-### Casos por estado del paciente y grupo etario
+### Casos por estado del paciente y edad
 
 ```{r, echo = F, include = F}
 ## Datos del MSP
@@ -253,7 +265,7 @@ g2 = ggplot(msp) +
 g2 %>% ggplotly(dynamicTicks = F)
 ```
 
-### Casos por género y grupo etario 
+### Casos por género y edad
 
 ```{r, echo = F, include = F}
 ## Datos del MSP
@@ -336,6 +348,9 @@ Casos al `r format(max(cantones_casos$fecha_hora), '%d de %B, %Y %H:%M')`
 
 ```{r, include = F}
 provincia_label = provincias_casos %>% filter(fecha == max(fecha)) %>%  st_cast('POLYGON')
+provincias_plot = provincias_casos %>% 
+      filter(fecha == max(fecha)) # %>% 
+      # mutate(fallecidos = as.integer(ifelse(fallecidos == 0, NA, fallecidos)))
 tmap_mode('view')
 ```
 
@@ -345,7 +360,9 @@ tm_shape(provincias) +
     alpha = 0, border.col = 'white', border.alpha = 0.5, 
     popup.vars = NULL, group = 'Límite provincial'
   ) +
-  tm_shape(provincias_casos %>% filter(fecha == max(fecha))) +
+  tm_shape(
+    provincias_plot
+  ) +
   tm_polygons(
     group = 'Casos confirmados por Provincia',
     title = 'Casos Confirmados',
@@ -357,13 +374,14 @@ tm_shape(provincias) +
     palette = 'YlOrRd',
     style = 'jenks', 
     legend.show = T, id = 'DPA_DESPRO',
-    popup.vars = c("Casos" = "casos_confirmados_prov")
+    popup.vars = c("Casos" = "casos_confirmados_prov", "Fallecidos" = "fallecidos")
   ) 
-  # tm_facets(along = 'fecha', free.coords = FALSE) +
-  # tm_shape(cantones_label) +
-  # tm_text(text = 'casos_confirmados', remove.overlap = F, size = 1, shadow = F)
-  # tm_facets(along = 'fecha', free.coords = FALSE) +
-  # tm_layout(main.title.size = 0.6, frame = F)
+  # tm_shape(provincias_plot %>% st_centroid(of_largest_polygon = T)) +
+  # tm_dots(
+  #   group = 'Falleciods por Provincia', 
+  #   size = 'fallecidos', id = NULL, perceptual = T,
+  #   popup.vars = c("Provincia" = "DPA_DESPRO", "Fallecidos" = "fallecidos") 
+  # )
 ```
 
 ## Casos por Cantón 
@@ -395,11 +413,6 @@ tm_shape(cantones) +
     legend.show = T, id = 'DPA_DESCAN',
     popup.vars = c("Casos" = "casos_confirmados", "Provincia" = "DPA_DESPRO")
   ) 
-  # tm_facets(along = 'fecha', free.coords = FALSE) +
-  # tm_shape(cantones_label) +
-  # tm_text(text = 'casos_confirmados', remove.overlap = F, size = 1, shadow = F)
-  # tm_facets(along = 'fecha', free.coords = FALSE) +
-  # tm_layout(main.title.size = 0.6, frame = F)
 ```
 
 ## Sobre el Sitio
@@ -429,6 +442,6 @@ Visualización de los casos de COVID-19 en el Ecuador, según lo reporta el [Ser
 ## Recursos Adicionales
 
 * [Monitor de Crisis - EC de Juanmnl Cornejo](https://monitorec.app/){target="_blank"}
-* [ArcGIS dashboard de Edison Veloz Rubio](http://tamucc.maps.arcgis.com/){target="_blank"}
+* [ArcGIS dashboard de Edison Veloz Rubio](https://tamucc.maps.arcgis.com/apps/opsdashboard/index.html#/606a4c8659a74ee6ae2848f852abb912){target="_blank"}
 * [Dashboard de Marcelo Hidalgo y John Loachamin](https://pixfall.appspot.com/){target="_blank"}
 * [ArcGIS dashboard de ESRI-Ecuador](https://esriec.maps.arcgis.com/apps/opsdashboard/index.html#/82919cbd50fc47c6b713c89b08c3ffdd){target="_blank"}
