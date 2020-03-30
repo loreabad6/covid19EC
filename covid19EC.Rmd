@@ -243,6 +243,8 @@ g1 %>% ggplotly(tooltip = 'text', dynamicTicks = T) %>%
 ```{r, echo = F, include = F}
 ## Datos del MSP
 msp = read.csv('https://raw.githubusercontent.com/pablora19/COVID19_EC/master/age%20range%20-%20alive_deads.csv', encoding = 'UTF-8') %>% 
+  mutate(Fecha = as.character(Fecha)) %>% 
+  mutate(Fecha = ifelse(BoletinMSP == 21, '26/3/2020', Fecha)) %>% 
   mutate(
     Fecha = as.Date(Fecha, format = '%d/%m/%Y'),
     rango.edad = factor(rango.edad, 
@@ -251,20 +253,32 @@ msp = read.csv('https://raw.githubusercontent.com/pablora19/COVID19_EC/master/ag
                                    '20 - 49 años', '50 - 64 años', '> 65 años'),
                         ordered = T)
   ) %>% 
-  gather(estado, casos, -Fecha, -rango.edad, -BoletinMSP) %>% 
-  rename('Rango de Edad' = rango.edad)
+  gather(Estado, Casos, -Fecha, -rango.edad, -BoletinMSP) %>% 
+  mutate(
+    Clasificacion = ifelse(Estado == 'probablemente.fallecido', 'Probable', 'Confirmado')
+  ) %>% 
+  rename('Rango de Edad' = rango.edad) %>% 
+  mutate(Estado = ifelse(Estado == 'probablemente.fallecido', 'Fallecido', Estado))
 
-g2 = ggplot(msp) + 
-  geom_col(aes(y = casos, x = Fecha, fill = `Rango de Edad`), 
-           position = position_dodge()) + 
-  facet_wrap(~estado, scales = 'free_y', nrow = 2) +
-  scale_x_date(date_breaks = '1 day', date_labels = '%d/%m') +
+g2 = ggplot(msp, aes(y = Casos, x = `Rango de Edad`, fill = `Rango de Edad`)) + 
+  geom_col(
+    aes(frame = Fecha), position = position_identity(), show.legend = F
+  ) + 
+  facet_grid(Estado~Clasificacion, scales = 'free_y') +
+  # scale_x_date(date_breaks = '2 day', date_labels = '%d/%m') +
   xlab('') + ylab('') +
-  theme(panel.background = element_rect(fill = 'grey95'))
+  theme(
+    panel.background = element_rect(fill = 'grey95'), 
+    axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = 1)
+  )
 ```
 
 ```{r, echo = F, message=F, warning=F, out.width='100%'}
-g2 %>% ggplotly(dynamicTicks = F)
+init_frame = length(unique(msp$Fecha)) - 1
+g2 %>% 
+  ggplotly(dynamicTicks = F, tooltip = c('x', 'y', 'frame')) %>% 
+  layout(showlegend = FALSE) %>% 
+  animation_slider() # active = init_frame
 ```
 
 ### Casos por género y edad
@@ -283,17 +297,23 @@ msp2 = read.csv('https://raw.githubusercontent.com/pablora19/COVID19_EC/master/a
   gather(genero, casos, -Fecha, -Rango.edad, -BoletinMSP) %>% 
   rename('Rango de Edad' = Rango.edad)
 
-g3 = ggplot(msp2) + 
-  geom_col(aes(y = casos, x = Fecha, fill = `Rango de Edad`), 
-           position = position_dodge()) + 
+g3 = ggplot(msp2, aes(y = casos, x = `Rango de Edad`, fill = `Rango de Edad`)) + 
+  geom_col(aes(frame = Fecha), show.legend = F,
+           position = position_identity()) + 
   facet_wrap(~genero, nrow = 1) +
-  scale_x_date(date_breaks = '2 day', date_labels = '%d/%m') +
+  # scale_x_date(date_breaks = '2 day', date_labels = '%d/%m') +
   xlab('') + ylab('') +
-  theme(panel.background = element_rect(fill = 'grey95'))
+  theme(
+    axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = 1),
+    panel.background = element_rect(fill = 'grey95')
+  )
 ```
 
 ```{r, echo = F, message=F, warning=F, out.width='100%'}
-g3 %>% ggplotly(dynamicTicks = F)
+g3 %>% 
+  ggplotly(dynamicTicks = F, tooltip = c('x', 'y', 'frame')) %>% 
+  layout(showlegend = FALSE) %>% 
+  animation_slider() 
 ```
 
 
