@@ -184,7 +184,44 @@ knitr::include_graphics('covid_prov.gif')
 
 ## Casos a nivel Nacional {.tabset}
 
-### Estado de personas contagiadas
+### Casos diarios
+```{r, include = F}
+casos_diarios = casos_nacional %>% 
+  transmute(
+    fecha = fecha,
+    `Casos Confirmados Diarios` = casos_confirmados - lag(
+      casos_confirmados, default = first(casos_confirmados), order_by = fecha
+    ),
+    `Fallecidos Diarios` = fallecidos - lag(
+      fallecidos, default = first(fallecidos), order_by = fecha
+    )
+  ) %>% 
+  gather(estado, casos, -fecha)
+
+g5 = ggplot(casos_diarios, aes(x = fecha, y = casos, fill = estado)) +
+  geom_col(
+    aes(text = paste0('Fecha: ', fecha, '<br>', estado, ': ', casos)),
+    position = 'dodge2'
+  ) +
+  scale_x_date(date_breaks = '1 day', date_labels = '%d/%m') +
+  scale_fill_manual('', values = c('grey70', 'red')) +
+  xlab('') + ylab('') +
+  theme(
+    panel.background = element_rect(fill = 'grey95')
+  )
+```
+
+```{r, echo = F, message=F, warning=F, out.width='100%'}
+g5 %>% ggplotly(dynamicTicks = F, tooltip = 'text') %>% 
+  layout(
+    legend = list(
+    orientation = "v", y = 0.95, x = 0.05, bgcolor = "rgba(0, 0, 0, 0)"
+    )
+  )
+```
+
+
+### Casos acumulados
 
 ```{r, include = F}
 casos_plot = casos_nacional %>% 
@@ -232,7 +269,7 @@ g1 %>% ggplotly(tooltip = 'text', dynamicTicks = T) %>%
   layout(
     hovermode = 'compare',
     legend = list(
-    # title = list(text = 'Estado de personas contagiadas'),
+    title = list(text = 'Estado de personas contagiadas'),
     orientation = "v", y = 0.95, x = 0.05, bgcolor = "rgba(0, 0, 0, 0)"
     )
   )
@@ -315,7 +352,6 @@ g3 %>%
   layout(showlegend = FALSE) %>% 
   animation_slider() 
 ```
-
 
 ## Casos por Provincia {.tabset}
 
