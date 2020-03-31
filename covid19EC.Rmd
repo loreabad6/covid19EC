@@ -194,6 +194,9 @@ casos_diarios = casos_nacional %>%
     ),
     `Fallecidos Diarios` = fallecidos - lag(
       fallecidos, default = first(fallecidos), order_by = fecha
+    ),
+    Recuperados = recuperados - lag(
+      recuperados, default = first(recuperados), order_by = fecha
     )
   ) %>% 
   gather(estado, casos, -fecha)
@@ -204,7 +207,7 @@ g5 = ggplot(casos_diarios, aes(x = fecha, y = casos, fill = estado)) +
     position = 'dodge2'
   ) +
   scale_x_date(date_breaks = '1 day', date_labels = '%d/%m') +
-  scale_fill_manual('', values = c('grey70', 'red')) +
+  scale_fill_manual('', values = c('grey70', 'red', 'green')) +
   xlab('') + ylab('') +
   theme(
     panel.background = element_rect(fill = 'grey95')
