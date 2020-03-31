@@ -35,14 +35,14 @@ g2 = ggplot(casos_nacional, aes(x = fecha, y = casos_confirmados)) +
   geom_col(aes(fill = casos_confirmados)) +
   geom_text(
     aes(label = casos_confirmados, color = casos_confirmados), 
-    nudge_y = 50, size = 10, fontface = 'bold'
+    nudge_y = 50, size = 9, fontface = 'bold'
   ) +
   scale_fill_gradientn(colors = palette, breaks = breaks$brks[2:6]) +
   scale_color_gradientn(colors = palette, breaks = breaks$brks[2:6]) +
   scale_x_date(date_breaks = '2 day', date_labels = "%d/%m") +
   xlab('') + ylab('') +
   theme_void() +
-  theme(legend.position = "none", plot.background = element_rect(fill = 'white')) 
+  theme(legend.position = "none", plot.background = element_rect(fill = 'white', color = 'white')) 
 
 library(gganimate)
 g2_anim = g2 + transition_manual(fecha, cumulative = T) 
