@@ -55,6 +55,7 @@ casos_provincia = casos_canton %>% group_by(fecha, id_prov) %>%
 
 # Añadir muertes por provincia
 muertes_prov = read.csv('https://raw.githubusercontent.com/pablora19/COVID19_EC/master/deaths%20by%20province%20from%2026_03_2020.csv') %>% 
+  mutate(fecha = ifelse(infografia == 36, '1/4/2020', fecha)) %>% 
   mutate(
     fecha = as.Date(fecha, format = '%d/%m/%Y'),
     id_prov = as.factor(sprintf("%02d", id_provincia))
@@ -289,7 +290,7 @@ g1 %>% ggplotly(tooltip = 'text', dynamicTicks = T) %>%
 
 ```{r, echo = F, include = F}
 ## Datos del MSP
-msp2 = read.csv('https://raw.githubusercontent.com/pablora19/COVID19_EC/master/Positive%20-%20age%20range.csv') %>% #, encoding = 'UTF-8') %>% 
+msp2 = read.csv('https://raw.githubusercontent.com/pablora19/COVID19_EC/master/Positive%20-%20age%20range.csv', encoding = 'UTF-8') %>% #, ) %>% 
   drop_na()  %>% 
   mutate(
     Fecha = as.Date(Fecha, format = '%d/%m/%Y'),
