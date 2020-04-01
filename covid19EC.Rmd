@@ -1,18 +1,19 @@
 ---
-title: "Casos de COVID-19 en Ecuador"
-output: 
-  html_document
+pagetitle: "Casos de COVID-19 en Ecuador"
+output: html_document
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r, echo=FALSE}
-#' https://cdn4.iconfinder.com/data/icons/coronavirus-glyph/64/coronavirus-sars-mers-flu-virus-influenza-512.png
-htmltools::img(src = 'https://www.salud.gob.ec/wp-content/uploads/2020/03/img21.jpg ',
-               alt = 'logo', 
-               style = 'position:absolute; top:0; right:0; padding:50px; width:15%')
-```
+<h1 style="font-size:35px;"><b>
+<center>
+<img width="2%" src="https://www.salud.gob.ec/wp-content/uploads/2020/03/img21.jpg"/>
+<img width="8%" src="https://www.salud.gob.ec/wp-content/uploads/2020/03/img21.jpg"/>
+Casos de COVID-19 en Ecuador 
+<img width="6%" src="https://upload.wikimedia.org/wikipedia/commons/9/96/Flag_of_Ecuador.png"/>
+</center>
+</b></h1>
 
 ```{r, echo = F, include = F}
 # Definir idioma de Fecha
@@ -24,6 +25,7 @@ library(dplyr)
 library(sf)
 library(tmap)
 library(plotly)
+library(stringr)
 library(tidyr)
 
 # Leer datos recopilados por Pablo Reyes (https://twitter.com/PabloRA19/status/1241964053406285825)
@@ -105,7 +107,7 @@ nacional_extra = casos_nacional %>%
   mutate(geometry = st_geometry(point2)) %>% 
   st_as_sf() %>% 
   mutate(
-    extra = paste('Fallecidos:', fallecidos, '\n', 'Recuperados: ', recuperados)
+    extra = paste('Fallecidos:', fallecidos, '\n', 'Alta Hospitalaria: ', recuperados)
   )
     
 ```
@@ -154,6 +156,9 @@ tm = tm_shape(provincias) +
 tmap_animation(tm, filename = 'covid_prov.gif', width = 1200, height = 750, delay=60, restart.delay = 150)
 ```
 
+```{r, include = F, code = readLines('magick.R')}
+```
+
 # {.tabset}
 
 ## Inicio
@@ -170,7 +175,7 @@ knitr::include_graphics('covid_prov.gif')
 
 <span style="color: red; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(fallecidos)`**</span><br>Fallecidos
 
-<span style="color: green; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(recuperados)`**</span><br>Recuperados
+<span style="color: green; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(recuperados)`**</span><br>Alta hospitalaria
 
 <br>
 <span style="color: grey; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(casos_sosp)`**</span><br>Casos con sospecha
@@ -189,21 +194,23 @@ knitr::include_graphics('covid_prov.gif')
 casos_diarios = casos_nacional %>% 
   transmute(
     fecha = fecha,
-    `Casos Confirmados Diarios` = casos_confirmados - lag(
+    `Casos Confirmados` = casos_confirmados - lag(
       casos_confirmados, default = first(casos_confirmados), order_by = fecha
     ),
-    `Fallecidos Diarios` = fallecidos - lag(
+    `Fallecidos` = fallecidos - lag(
       fallecidos, default = first(fallecidos), order_by = fecha
     ),
-    Recuperados = recuperados - lag(
+    `Alta hospitalaria` = recuperados - lag(
       recuperados, default = first(recuperados), order_by = fecha
     )
   ) %>% 
-  gather(estado, casos, -fecha)
+  gather(estado, casos, -fecha) %>% 
+  mutate(estado = factor(estado, levels = c('Casos Confirmados', 'Fallecidos', 'Alta hospitalaria'), ordered = T)) %>% 
+  arrange(estado)
 
 g5 = ggplot(casos_diarios, aes(x = fecha, y = casos, fill = estado)) +
   geom_col(
-    aes(text = paste0('Fecha: ', fecha, '<br>', estado, ': ', casos)),
+    aes(order = estado, text = paste0('Fecha: ', fecha, '<br>', estado, ': ', casos)),
     position = 'dodge2'
   ) +
   scale_x_date(date_breaks = '1 day', date_labels = '%d/%m') +
@@ -233,12 +240,12 @@ casos_plot = casos_nacional %>%
   mutate(
     variable = factor(ifelse(
       variable == 'fallecidos', 'Fallecidos', 
-      ifelse(variable == 'recuperados', 'Recuperados', 
+      ifelse(variable == 'recuperados', 'Alta hospitalaria', 
       ifelse(variable == 'hosp_est', 'Hospitalizados estables',
       ifelse(variable == 'hosp_pron_res','Hospitalizados con pronóstico reservado',
       ifelse(variable == 'estables_aislamiento_domiliciario', 'Estables en aislamiento domiciliario', ''
     ))))), 
-    levels = c('Estables en aislamiento domiciliario', 'Hospitalizados estables', 'Hospitalizados con pronóstico reservado', 'Fallecidos', 'Recuperados'),
+    levels = c('Estables en aislamiento domiciliario', 'Hospitalizados estables', 'Hospitalizados con pronóstico reservado', 'Fallecidos', 'Alta hospitalaria'),
     ordered = T)
   ) %>% 
   mutate(legend_label = paste0(variable, ": ", value))
@@ -278,6 +285,41 @@ g1 %>% ggplotly(tooltip = 'text', dynamicTicks = T) %>%
   )
 ```
 
+### Casos por rango de edad
+
+```{r, echo = F, include = F}
+## Datos del MSP
+msp2 = read.csv('https://raw.githubusercontent.com/pablora19/COVID19_EC/master/Positive%20-%20age%20range.csv') %>% #, encoding = 'UTF-8') %>% 
+  drop_na()  %>% 
+  mutate(
+    Fecha = as.Date(Fecha, format = '%d/%m/%Y'),
+    Rango.edad = factor(Rango.edad, 
+                        levels = c('<1 año', '1 - 4 años', '5 - 9 años', 
+                                   '10 - 14 años', '15 - 19 años', 
+                                   '20 - 49 años', '50 - 64 años', '> 65 años'),
+                        ordered = T)
+  ) %>% 
+  # gather(genero, casos, -Fecha, -Rango.edad, -BoletinMSP) %>% 
+  rename('Rango de Edad' = Rango.edad) 
+
+g3 = ggplot(msp2, aes(y = Total, x = `Rango de Edad`, fill = `Rango de Edad`)) + 
+  geom_col(aes(frame = Fecha), show.legend = F, position = position_identity()) + 
+  # facet_wrap(~genero, nrow = 1) +
+  # scale_x_date(date_breaks = '2 day', date_labels = '%d/%m') +
+  xlab('') + ylab('') +
+  theme(
+    axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = 1),
+    panel.background = element_rect(fill = 'grey95')
+  )
+```
+
+```{r, echo = F, message=F, warning=F, out.width='100%'}
+g3 %>% 
+  ggplotly(dynamicTicks = F, tooltip = c('x', 'y', 'frame')) %>% 
+  layout(showlegend = FALSE) %>% 
+  animation_slider() 
+```
+
 ### Casos por estado del paciente y edad
 
 ```{r, echo = F, include = F}
@@ -295,10 +337,13 @@ msp = read.csv('https://raw.githubusercontent.com/pablora19/COVID19_EC/master/ag
   ) %>% 
   gather(Estado, Casos, -Fecha, -rango.edad, -BoletinMSP) %>% 
   mutate(
-    Clasificacion = ifelse(Estado == 'probablemente.fallecido', 'Probable', 'Confirmado')
+    Clasificacion = ifelse(str_detect(Estado,'probable'), 'Probable', 'Confirmado')
   ) %>% 
   rename('Rango de Edad' = rango.edad) %>% 
-  mutate(Estado = ifelse(Estado == 'probablemente.fallecido', 'Fallecido', Estado))
+  mutate(
+    Estado = ifelse(str_detect(Estado,'.fallecido'), 'Fallecido', 
+                    ifelse(str_detect(Estado,'.vivo'), 'Vivo', Estado))
+  )
 
 g2 = ggplot(msp, aes(y = Casos, x = `Rango de Edad`, fill = `Rango de Edad`)) + 
   geom_col(
@@ -319,41 +364,6 @@ g2 %>%
   ggplotly(dynamicTicks = F, tooltip = c('x', 'y', 'frame')) %>% 
   layout(showlegend = FALSE) %>% 
   animation_slider() # active = init_frame
-```
-
-### Casos por género y edad
-
-```{r, echo = F, include = F}
-## Datos del MSP
-msp2 = read.csv('https://raw.githubusercontent.com/pablora19/COVID19_EC/master/age%20range%20-%20gender%20fem_mal%20.csv') %>% #, encoding = 'UTF-8') %>% 
-  mutate(
-    Fecha = as.Date(Fecha, format = '%d/%m/%Y'),
-    Rango.edad = factor(Rango.edad, 
-                        levels = c('<1 año', '1 - 4 años', '5 - 9 años', 
-                                   '10 - 14 años', '15 - 19 años', 
-                                   '20 - 49 años', '50 - 64 años', '> 65 años'),
-                        ordered = T)
-  ) %>% 
-  gather(genero, casos, -Fecha, -Rango.edad, -BoletinMSP) %>% 
-  rename('Rango de Edad' = Rango.edad)
-
-g3 = ggplot(msp2, aes(y = casos, x = `Rango de Edad`, fill = `Rango de Edad`)) + 
-  geom_col(aes(frame = Fecha), show.legend = F,
-           position = position_identity()) + 
-  facet_wrap(~genero, nrow = 1) +
-  # scale_x_date(date_breaks = '2 day', date_labels = '%d/%m') +
-  xlab('') + ylab('') +
-  theme(
-    axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = 1),
-    panel.background = element_rect(fill = 'grey95')
-  )
-```
-
-```{r, echo = F, message=F, warning=F, out.width='100%'}
-g3 %>% 
-  ggplotly(dynamicTicks = F, tooltip = c('x', 'y', 'frame')) %>% 
-  layout(showlegend = FALSE) %>% 
-  animation_slider() 
 ```
 
 ## Casos por Provincia {.tabset}
@@ -491,9 +501,10 @@ Visualización de los casos de COVID-19 en el Ecuador, según lo reporta el [Ser
 * Los datos se observan a nivel Nacional, por Provincia y por Cantón. Los gráficos en cada sección son interactivos. 
 
 * El código para reproducir las figuras, mapas y el sitio se encuentra en [GitHub](https://github.com/loreabad6/covid19EC){target="_blank"}. Todo es creado en R, con ayuda de los paquetes: [rmarkdown](https://rmarkdown.rstudio.com/){target="_blank"}, [sf](https://r-spatial.github.io/sf/){target="_blank"}, [ggplot2](https://ggplot2.tidyverse.org/){target="_blank"}, [tmap](https://github.com/mtennekes/tmap){target="_blank"}, [plotly](https://plotly.com/r/){target="_blank"},
-[gganimate](https://gganimate.com/){target="_blank"}, [magick](https://docs.ropensci.org/magick/){target="_blank"}, [tidyr](https://tidyr.tidyverse.org/){target="_blank"} y [dplyr](https://dplyr.tidyverse.org/){target="_blank"}.
+[gganimate](https://gganimate.com/){target="_blank"}, [magick](https://docs.ropensci.org/magick/){target="_blank"},
+[stringr](https://stringr.tidyverse.org/){target="_blank"}, [tidyr](https://tidyr.tidyverse.org/){target="_blank"} y [dplyr](https://dplyr.tidyverse.org/){target="_blank"}.
 
-**Última actualización:** `r format(Sys.time(), '%d/%m/%Y %H:%M %Z')`
+**Última actualización:** `r format(Sys.time(), '%d/%m/%Y %H:%M %Z')` / `r format(Sys.time(), format = '%d/%m/%Y %H:%M %Z-5', tz="GMT+5")`
 
 **Autor:** Lorena Abad 
 
@@ -506,3 +517,4 @@ Visualización de los casos de COVID-19 en el Ecuador, según lo reporta el [Ser
 * [ArcGIS dashboard de Edison Veloz Rubio](https://tamucc.maps.arcgis.com/apps/opsdashboard/index.html#/606a4c8659a74ee6ae2848f852abb912){target="_blank"}
 * [Dashboard de Marcelo Hidalgo y John Loachamin](https://pixfall.appspot.com/){target="_blank"}
 * [ArcGIS dashboard de ESRI-Ecuador](https://esriec.maps.arcgis.com/apps/opsdashboard/index.html#/82919cbd50fc47c6b713c89b08c3ffdd){target="_blank"}
+* [Sitio de Gabriel Carpio](https://www.gabrielcarpio.com/covid/){target="_blank"}
