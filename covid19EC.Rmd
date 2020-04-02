@@ -33,7 +33,8 @@ library(tidyr)
 casos = read.csv('https://raw.githubusercontent.com/pablora19/COVID19_EC/master/covid_ec.csv', sep = ',') %>% 
   mutate(fecha_hora = paste(fecha, hora)) %>%
   mutate(fecha = as.Date(fecha, format = '%d/%m/%Y')) %>% 
-  mutate(fecha_hora = as.POSIXct(fecha_hora, format = '%d/%m/%Y %H:%M'))
+  mutate(fecha_hora = as.POSIXct(fecha_hora, format = '%d/%m/%Y %H:%M')) %>% 
+  distinct()
 
 # Convertir NaN en NA
 is.nan.data.frame <- function(x){
