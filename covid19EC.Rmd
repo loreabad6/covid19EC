@@ -310,14 +310,14 @@ g3 = ggplot(msp2, aes(y = Total, x = `Rango de Edad`, fill = `Rango de Edad`)) +
   # scale_x_date(date_breaks = '2 day', date_labels = '%d/%m') +
   xlab('') + ylab('') +
   theme(
-    axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = 1),
+    axis.text.x = element_text(angle = 0, vjust = 0.5, hjust = 0),
     panel.background = element_rect(fill = 'grey95')
   )
 ```
 
 ```{r, echo = F, message=F, warning=F, out.width='100%'}
 g3 %>% 
-  ggplotly(dynamicTicks = F, tooltip = c('x', 'y', 'frame')) %>% 
+  ggplotly(dynamicTicks = TRUE, tooltip = c('x', 'y', 'frame')) %>% 
   layout(showlegend = FALSE) %>% 
   animation_slider() 
 ```
@@ -356,14 +356,14 @@ g2 = ggplot(msp, aes(y = Casos, x = `Rango de Edad`, fill = `Rango de Edad`)) +
   xlab('') + ylab('') +
   theme(
     panel.background = element_rect(fill = 'grey95'), 
-    axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = 1)
+    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 0)
   )
 ```
 
 ```{r, echo = F, message=F, warning=F, out.width='100%'}
-init_frame = length(unique(msp$Fecha)) - 1
+# init_frame = length(unique(msp$Fecha)) - 1
 g2 %>% 
-  ggplotly(dynamicTicks = F, tooltip = c('x', 'y', 'frame')) %>% 
+  ggplotly(dynamicTicks = FALSE, tooltip = c('x', 'y', 'frame')) %>% 
   layout(showlegend = FALSE) %>% 
   animation_slider() # active = init_frame
 ```
