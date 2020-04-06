@@ -221,7 +221,7 @@ g5 = ggplot(casos_diarios, aes(x = fecha, y = casos, fill = estado)) +
     aes(order = estado, text = paste0('Fecha: ', fecha, '<br>', estado, ': ', casos)),
     position = 'dodge2'
   ) +
-  scale_x_date(date_breaks = '1 day', date_labels = '%d/%m') +
+  scale_x_date(date_breaks = '2 day', date_labels = '%d/%m') +
   scale_fill_manual('', values = c('grey70', 'red', 'green')) +
   xlab('') + ylab('') +
   theme(
