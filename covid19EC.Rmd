@@ -117,21 +117,27 @@ nacional_extra = casos_nacional %>%
 ```{r, echo = F, include = F}
 # Crear un mapa animado para mostrar la evolución de casos por día.
 tm = tm_shape(provincias) +
-  tm_polygons(col = 'grey80', border.col = 'white', border.alpha = 1, lwd = 0.5) +
-  tm_shape(provincias_casos) +
-  tm_polygons(
-    title = 'Casos Confirmados',
-    col = 'casos_confirmados_prov', 
-    border.col = 'white',
-    border.alpha = 0.5,
-    lwd = 1,
+  tm_polygons(col = 'grey90', border.col = 'white', border.alpha = 1, lwd = 0.5) +
+  tm_shape(provincias_casos %>% st_centroid(of_largest_polygon = T)) +
+  tm_bubbles(
+    title.shape = 'Casos Confirmados',
+    col = 'casos_confirmados_prov',
+    size = 'casos_confirmados_prov', 
+    border.col = 'grey30',
+    scale = 3,
+    alpha = 0.8,
+    border.alpha = 0.1,
+    border.lwd = 0.3,
     palette = 'YlOrRd',
-    style = 'jenks', 
-    legend.show = F
+    style = 'jenks',
+    perceptual = T,
+    legend.size.show = F,
+    legend.col.show = F
   ) +
   tm_facets(along = 'fecha', free.coords = FALSE) +
   tm_shape(provincias_casos %>% st_centroid(of_largest_polygon = T)) +
-  tm_text(text = 'casos_confirmados_prov', size = 0.4, bg.color = 'white', bg.alpha = 0.5) +
+  tm_text(text = 'casos_confirmados_prov', size = 0.35) +
+  #bg.color = 'white', bg.alpha = 0.5) +
   tm_facets(along = 'fecha', free.coords = FALSE) +
   tm_shape(nacional_casos) +
   tm_text(
