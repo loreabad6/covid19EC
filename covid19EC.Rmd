@@ -6,7 +6,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-<h1 style="font-size:35px;"><b>
+<h1 style="font-size:25px;"><b>
 <center>
 <img width="2%" src="https://www.salud.gob.ec/wp-content/uploads/2020/03/img21.jpg"/>
 <img width="8%" src="https://www.salud.gob.ec/wp-content/uploads/2020/03/img21.jpg"/>
@@ -82,7 +82,12 @@ if (!file.exists(dst)) {
 # Cargar los archivos
 provincias = st_read('data/SHP/nxprovincias.shp') %>% 
   st_simplify(dTolerance = 1000) %>% 
-  mutate(region = ifelse(DPA_DESPRO == 'GALAPAGOS', 'Insular', 'Continental'))
+  filter(DPA_PROVIN != '90') %>% 
+  mutate(
+    region = ifelse(
+      DPA_PROVIN %in% c('01','02','03','04','05','06','10','11','17','18','23'), 'Sierra',
+      ifelse(DPA_PROVIN %in% c('07','08','09','12','13','24'), 'Costa',
+              ifelse(DPA_PROVIN == '20', 'Insular', 'Oriente'))))
 cantones = st_read('data/SHP/nxcantones.shp') %>% st_simplify(dTolerance = 500)
 
 # Añadir conteo de casos a capa de provincias
@@ -401,9 +406,9 @@ g = ggplot(
       'Casos Confirmados: ', casos_confirmados_prov, '<br>', 
       'Provincia: ', DPA_DESPRO)
   )) +
-  geom_line() + geom_point() +
+  geom_line(aes(legendgroup = region)) + geom_point() +
   scale_color_manual('PROVINCIAS', values = palette) +
-  scale_x_date(date_breaks = '2 day', date_labels = '%d/%m') +
+  scale_x_date(date_breaks = '3 day', date_labels = '%d/%m') +
   xlab('') + ylab('Casos Confirmados') +
   # facet_wrap(~faceter, ncol = 2, scales = 'free_y') +
   theme(
@@ -412,13 +417,23 @@ g = ggplot(
     panel.background = element_rect(fill = 'grey95')
     )
 
-g_log = g + scale_y_log10() + ylab ('Casos Confirmados (log10)')
+# g_log = g + scale_y_log10() + ylab ('Casos Confirmados (log10)')
 ```
 
 ```{r, echo = F, out.width='100%'}
-plotly1 = ggplotly(g, tooltip = 'text')
-plotly2 = ggplotly(g_log, tooltip = 'text')
-plotly1 
+plotly1 = ggplotly(g, tooltip = 'text', dynamicTicks = T) %>% 
+  layout(
+    # hovermode = 'compare',
+    # legendgroup = 'region',
+    legend = list(
+      font = list(size = 9),
+      # title = list(text = 'Estado de personas contagiadas'),
+      itemclick = "toggleothers", itemdoubleclick = "toggle"
+      # orientation = "h", y = 0.95, x = 1#xanchor = 'center', x = 0.5
+    )
+  ) 
+# plotly2 = ggplotly(g_log, tooltip = 'text')
+plotly1
 ```
 
 ### Mapa
