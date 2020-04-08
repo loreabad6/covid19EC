@@ -186,7 +186,7 @@ knitr::include_graphics('covid_prov.gif')
 <span style="color: green; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(recuperados)`**</span><br>Alta hospitalaria
 
 <br>
-<span style="color: grey; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(casos_sosp)`**</span><br>Casos con sospecha
+<!-- <span style="color: grey; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(casos_sosp)`**</span><br>Casos con sospecha -->
 
 <span style="color: grey; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(muestras_tomadas)`**</span><br>Muestras tomadas
 
@@ -495,8 +495,6 @@ tm_shape(cantones) +
 ```
 
 ## Sobre el Sitio
-
-*Trabajo en progreso*
 
 Visualización de los casos de COVID-19 en el Ecuador, según lo reporta el [Servicio Nacional de Gestión de Riesgos y Emergencias](https://www.gestionderiesgos.gob.ec/informes-de-situacion-covid-19-desde-el-13-de-marzo-del-2020/){target="_blank"} y el [Ministerio de Salud Pública](https://www.salud.gob.ec/gacetas-epidemiologicas-coronavirus-covid-19/){target="_blank"}.
 

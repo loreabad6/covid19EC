@@ -35,7 +35,7 @@ g2 = ggplot(casos_nacional, aes(x = fecha, y = casos_confirmados)) +
   geom_col(aes(fill = casos_confirmados)) +
   geom_text(
     aes(label = casos_confirmados, color = casos_confirmados), 
-    nudge_y = 50, size = 9, fontface = 'bold'
+    nudge_y = 300, size = 8, fontface = 'bold', angle = 90
   ) +
   scale_fill_gradientn(colors = palette, breaks = breaks$brks[2:6]) +
   scale_color_gradientn(colors = palette, breaks = breaks$brks[2:6]) +
