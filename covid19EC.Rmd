@@ -110,11 +110,11 @@ nacional_casos = casos_nacional %>%
     casos = paste('Casos:', casos_confirmados)
   )
 nacional_extra = casos_nacional %>% 
-  mutate(recuperados = replace_na(recuperados, 0)) %>% 
+  mutate(Alta.hospitalaria = replace_na(Alta.hospitalaria, 0)) %>% 
   mutate(geometry = st_geometry(point2)) %>% 
   st_as_sf() %>% 
   mutate(
-    extra = paste('Fallecidos:', fallecidos, '\n', 'Alta Hospitalaria: ', recuperados)
+    extra = paste('Fallecidos:', fallecidos, '\n', 'Alta Hospitalaria: ', Alta.hospitalaria)
   )
     
 ```
@@ -188,7 +188,7 @@ knitr::include_graphics('covid_prov.gif')
 
 <span style="color: red; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(fallecidos)`**</span><br>Fallecidos
 
-<span style="color: green; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(recuperados)`**</span><br>Alta hospitalaria
+<span style="color: green; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(Alta.hospitalaria)`**</span><br>Alta hospitalaria
 
 <br>
 <!-- <span style="color: grey; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(casos_sosp)`**</span><br>Casos con sospecha -->
@@ -213,8 +213,8 @@ casos_diarios = casos_nacional %>%
     `Fallecidos` = fallecidos - lag(
       fallecidos, default = first(fallecidos), order_by = fecha
     ),
-    `Alta hospitalaria` = recuperados - lag(
-      recuperados, default = first(recuperados), order_by = fecha
+    `Alta hospitalaria` = Alta.hospitalaria - lag(
+      Alta.hospitalaria, default = first(Alta.hospitalaria), order_by = fecha
     )
   ) %>% 
   gather(estado, casos, -fecha) %>% 
@@ -248,12 +248,12 @@ g5 %>% ggplotly(dynamicTicks = F, tooltip = 'text') %>%
 
 ```{r, include = F}
 casos_plot = casos_nacional %>% 
-  select(fecha, fallecidos, recuperados, hosp_est, hosp_pron_res, estables_aislamiento_domiliciario, casos_confirmados) %>%
+  select(fecha, fallecidos, Alta.hospitalaria, hosp_est, hosp_pron_res, estables_aislamiento_domiliciario, casos_confirmados) %>%
   gather(variable, value, -fecha, - casos_confirmados) %>% 
   mutate(
     variable = factor(ifelse(
       variable == 'fallecidos', 'Fallecidos', 
-      ifelse(variable == 'recuperados', 'Alta hospitalaria', 
+      ifelse(variable == 'Alta.hospitalaria', 'Alta hospitalaria', 
       ifelse(variable == 'hosp_est', 'Hospitalizados estables',
       ifelse(variable == 'hosp_pron_res','Hospitalizados con pronóstico reservado',
       ifelse(variable == 'estables_aislamiento_domiliciario', 'Estables en aislamiento domiciliario', ''
@@ -329,7 +329,14 @@ g3 = ggplot(msp2, aes(y = Total, x = `Rango de Edad`, fill = `Rango de Edad`)) +
 ```{r, echo = F, message=F, warning=F, out.width='100%'}
 g3 %>% 
   ggplotly(dynamicTicks = TRUE, tooltip = c('x', 'y', 'frame')) %>% 
-  layout(showlegend = FALSE) %>% 
+  layout(
+    showlegend = FALSE, 
+    annotations = list(
+      text = '¿Cómo funciona?', x = 0.15, y = 0.85, yref = 'paper', xref = 'paper',
+      hovertext = 'Presiona Play para observar la evolución de casos,\no desliza a la fecha deseada.',
+      showarrow = F
+    )
+  ) %>% 
   animation_slider() 
 ```
 
@@ -375,7 +382,14 @@ g2 = ggplot(msp, aes(y = Casos, x = `Rango de Edad`, fill = `Rango de Edad`)) +
 # init_frame = length(unique(msp$Fecha)) - 1
 g2 %>% 
   ggplotly(dynamicTicks = FALSE, tooltip = c('x', 'y', 'frame')) %>% 
-  layout(showlegend = FALSE) %>% 
+  layout(
+    showlegend = FALSE,
+    annotations = list(
+      text = '¿Cómo funciona?', x = 0.85, y = 0.15, yref = 'paper', xref = 'paper',
+      hovertext = 'Presiona Play para observar la evolución de casos,\no desliza a la fecha deseada.',
+      showarrow = F
+    )
+  ) %>% 
   animation_slider() # active = init_frame
 ```
 
@@ -430,6 +444,10 @@ plotly1 = ggplotly(g, tooltip = 'text', dynamicTicks = T) %>%
       # title = list(text = 'Estado de personas contagiadas'),
       itemclick = "toggleothers", itemdoubleclick = "toggle"
       # orientation = "h", y = 0.95, x = 1#xanchor = 'center', x = 0.5
+    ),
+    annotations = list(
+      text = '¿Cómo funciona?', x = 0.15, y = 0.85, yref = 'paper', xref = 'paper',
+      hovertext = 'En la leyenda, haz click en la provincia de tu interés,\nel gráfico adaptará los ejes a tu selección.', showarrow = F
     )
   ) 
 # plotly2 = ggplotly(g_log, tooltip = 'text')
