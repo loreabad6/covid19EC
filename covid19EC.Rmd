@@ -226,7 +226,7 @@ g5 = ggplot(casos_diarios, aes(x = fecha, y = casos, fill = estado)) +
     aes(order = estado, text = paste0('Fecha: ', fecha, '<br>', estado, ': ', casos)),
     position = 'dodge2'
   ) +
-  scale_x_date(date_breaks = '2 day', date_labels = '%d/%m') +
+  scale_x_date(date_breaks = '3 day', date_labels = '%d/%m') +
   scale_fill_manual('', values = c('grey70', 'red', 'green')) +
   xlab('') + ylab('') +
   theme(
@@ -328,7 +328,7 @@ g3 = ggplot(msp2, aes(y = Total, x = `Rango de Edad`, fill = `Rango de Edad`)) +
 
 ```{r, echo = F, message=F, warning=F, out.width='100%'}
 g3 %>% 
-  ggplotly(dynamicTicks = TRUE, tooltip = c('x', 'y', 'frame')) %>% 
+  ggplotly(dynamicTicks = F, tooltip = c('x', 'y', 'frame')) %>% 
   layout(
     showlegend = FALSE, 
     annotations = list(
@@ -557,3 +557,4 @@ Visualización de los casos de COVID-19 en el Ecuador, según lo reporta el [Ser
 * [Dashboard de Marcelo Hidalgo y John Loachamin](https://pixfall.appspot.com/){target="_blank"}
 * [ArcGIS dashboard de ESRI-Ecuador](https://esriec.maps.arcgis.com/apps/opsdashboard/index.html#/82919cbd50fc47c6b713c89b08c3ffdd){target="_blank"}
 * [Sitio de Gabriel Carpio](https://www.gabrielcarpio.com/covid/){target="_blank"}
+* [Covid-19 tracker de Pablo Carrera Estrada](https://covid19ecuador.carreraestrada.com/){target="_blank"}
