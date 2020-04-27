@@ -31,10 +31,14 @@ library(tidyr)
 # Leer datos recopilados por Pablo Reyes (https://twitter.com/PabloRA19/status/1241964053406285825)
 # "https://raw.githubusercontent.com/loreabad6/COVID19_EC/master/covid_ec.csv"
 casos = read.csv('https://raw.githubusercontent.com/pablora19/COVID19_EC/master/covid_ec.csv', sep = ',') %>% 
+  rename(casos_confirmados = Casos.confirmados) %>% 
   mutate(fecha_hora = paste(fecha, hora)) %>%
   mutate(fecha = as.Date(fecha, format = '%d/%m/%Y')) %>% 
   mutate(fecha_hora = as.POSIXct(fecha_hora, format = '%d/%m/%Y %H:%M')) %>% 
   distinct()
+
+summary = read.csv("https://raw.githubusercontent.com/pablora19/COVID19_EC/master/summary%20test%2C%20hosp.csv") %>% 
+  mutate(fecha = as.Date(fecha, format = '%d/%m/%Y'))
 
 # Convertir NaN en NA
 is.nan.data.frame <- function(x){
@@ -68,7 +72,8 @@ casos_provincia = casos_provincia %>% left_join(muertes_prov, by = c('fecha','id
 # Extraer info relevante a nivel nacional
 casos_nacional = casos_canton %>% group_by(fecha) %>% 
   mutate(casos_confirmados = sum(casos_confirmados)) %>% 
-  summarize_at(vars(7:15), first)
+  summarize(casos_confirmados = first(casos_confirmados)) %>% 
+  inner_join(summary)
 
 # Descargar provincias y cantones de Ecuador
 if (!dir.exists("data")) dir.create("data")
@@ -191,12 +196,8 @@ knitr::include_graphics('covid_prov.gif')
 <span style="color: green; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(Alta.hospitalaria)`**</span><br>Alta hospitalaria
 
 <br>
-<!-- <span style="color: grey; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(casos_sosp)`**</span><br>Casos con sospecha -->
 
-<span style="color: grey; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(muestras_tomadas)`**</span><br>Muestras tomadas
-
-<!-- <span style="color: grey; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(cerco_epid_act)`**</span> -->
-<!-- Cerco epidemiológico actual -->
+<span style="color: grey; font-size: 20pt">**`r casos_nacional %>% filter(fecha == max(fecha)) %>% pull(muestras.tomadas)`**</span><br>Muestras tomadas
 
 </center>
 
@@ -248,15 +249,15 @@ g5 %>% ggplotly(dynamicTicks = F, tooltip = 'text') %>%
 
 ```{r, include = F}
 casos_plot = casos_nacional %>% 
-  select(fecha, fallecidos, Alta.hospitalaria, hosp_est, hosp_pron_res, estables_aislamiento_domiliciario, casos_confirmados) %>%
+  select(fecha, fallecidos, Alta.hospitalaria, hosp.est, hosp.pron.res, estables.aislamiento.domiliciario, casos_confirmados) %>%
   gather(variable, value, -fecha, - casos_confirmados) %>% 
   mutate(
     variable = factor(ifelse(
       variable == 'fallecidos', 'Fallecidos', 
       ifelse(variable == 'Alta.hospitalaria', 'Alta hospitalaria', 
-      ifelse(variable == 'hosp_est', 'Hospitalizados estables',
-      ifelse(variable == 'hosp_pron_res','Hospitalizados con pronóstico reservado',
-      ifelse(variable == 'estables_aislamiento_domiliciario', 'Estables en aislamiento domiciliario', ''
+      ifelse(variable == 'hosp.est', 'Hospitalizados estables',
+      ifelse(variable == 'hosp.pron.res','Hospitalizados con pronóstico reservado',
+      ifelse(variable == 'estables.aislamiento.domiliciario', 'Estables en aislamiento domiciliario', ''
     ))))), 
     levels = c('Estables en aislamiento domiciliario', 'Hospitalizados estables', 'Hospitalizados con pronóstico reservado', 'Fallecidos', 'Alta hospitalaria'),
     ordered = T)

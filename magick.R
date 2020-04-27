@@ -2,9 +2,14 @@ library(dplyr)
 # Leer datos recopilados por Pablo Reyes (https://twitter.com/PabloRA19/status/1241964053406285825)
 # "https://raw.githubusercontent.com/loreabad6/COVID19_EC/master/covid_ec.csv"
 casos = read.csv('https://raw.githubusercontent.com/pablora19/COVID19_EC/master/covid_ec.csv', sep = ',') %>% 
+  rename(casos_confirmados = Casos.confirmados) %>% 
   mutate(fecha_hora = paste(fecha, hora)) %>%
   mutate(fecha = as.Date(fecha, format = '%d/%m/%Y')) %>% 
-  mutate(fecha_hora = as.POSIXct(fecha_hora, format = '%d/%m/%Y %H:%M'))
+  mutate(fecha_hora = as.POSIXct(fecha_hora, format = '%d/%m/%Y %H:%M')) %>% 
+  distinct()
+
+summary = read.csv("https://raw.githubusercontent.com/pablora19/COVID19_EC/master/summary%20test%2C%20hosp.csv") %>% 
+  mutate(fecha = as.Date(fecha, format = '%d/%m/%Y'))
 
 # Convertir NaN en NA
 is.nan.data.frame <- function(x){
@@ -23,7 +28,8 @@ casos_canton = casos %>%
 # Extraer info relevante a nivel nacional
 casos_nacional = casos_canton %>% group_by(fecha) %>% 
   mutate(casos_confirmados = sum(casos_confirmados)) %>% 
-  summarize_at(vars(7:15), first)
+  summarize(casos_confirmados = first(casos_confirmados)) %>% 
+  inner_join(summary)
 
 library(dplyr)
 palette = tmaptools::get_brewer_pal('YlOrRd', 5) %>% as.vector()
