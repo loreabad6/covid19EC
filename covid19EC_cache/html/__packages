@@ -1,0 +1,16 @@
+base
+methods
+datasets
+utils
+grDevices
+graphics
+stats
+ggplot2
+dplyr
+sf
+tmap
+plotly
+stringr
+tidyr
+gganimate
+magick

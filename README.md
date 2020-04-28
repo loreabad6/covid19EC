@@ -1,4 +1,7 @@
 # covid19EC
+
+**NOTE:** Due to data inconsistency from official sources, the site can no longer be updated.
+
 Dataviz of Covid data in Ecuador. Access [https://loreabad6.github.io/covid19EC/covid19EC.html](https://loreabad6.github.io/covid19EC/covid19EC.html). 
 
 Data from [Servicio Nacional de Gestión de Riesgos y Emergencias](https://www.gestionderiesgos.gob.ec/informes-de-situacion-covid-19-desde-el-13-de-marzo-del-2020/) and [Ministerio de Salud Pública](https://www.salud.gob.ec/gacetas-epidemiologicas-coronavirus-covid-19/).

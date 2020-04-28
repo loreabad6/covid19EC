@@ -15,6 +15,9 @@ Casos de COVID-19 en Ecuador
 </center>
 </b></h1>
 
+<span style="color: red;">**NOTA:** Debido a inconsistencia de datos por parte del gobierno, este sitio no puede ser actualizado.</span>
+
+
 ```{r, echo = F, include = F}
 # Definir idioma de Fecha
 Sys.setlocale("LC_TIME", "Spanish")
@@ -171,10 +174,10 @@ tm = tm_shape(provincias) +
     frame = F
     # bg.color = 'black', title.color = 'white', main.title.color = 'white'
   )
-tmap_animation(tm, filename = 'covid_prov.gif', width = 1200, height = 750, delay=60, restart.delay = 150)
+tmap_animation(tm, filename = 'covid_prov.gif', width = 1400, height = 750, delay=60, restart.delay = 150)
 ```
 
-```{r, include = F, code = readLines('magick.R')}
+```{r, include = F, cache = T, code = readLines('magick.R')}
 ```
 
 # {.tabset}
@@ -460,8 +463,7 @@ plotly1
 Casos al `r format(max(cantones_casos$fecha_hora), '%d de %B, %Y %H:%M')`
 
 ```{r, include = F}
-provincia_label = provincias_casos %>% filter(fecha == max(fecha)) %>%  st_cast('POLYGON')
-provincias_plot = provincias_casos %>% 
+provincias_plot = provincias_casos %>% st_centroid(of_largest_polygon = T) %>%  
       filter(fecha == max(fecha))
 tmap_mode('view')
 ```
@@ -469,32 +471,30 @@ tmap_mode('view')
 ```{r, echo = F, out.width='100%'}
 tm_shape(provincias) +
   tm_polygons(
-    alpha = 0, border.col = 'white', border.alpha = 0.5, 
+    alpha = 0, border.col = 'grey80', border.alpha = 0.8, border.lwd = 2,
     popup.vars = NULL, group = 'Límite provincial'
   ) +
   tm_shape(
     provincias_plot
   ) +
-  tm_polygons(
+  tm_bubbles(
     group = 'Casos confirmados por Provincia',
-    title = 'Casos Confirmados',
-    col = 'casos_confirmados_prov', 
-    alpha = 0.8,
-    border.col = 'white',
-    border.alpha = 0.5,
-    lwd = 1,
+    title.col = 'Casos Confirmados',
+    col = 'casos_confirmados_prov',
+    size = 'casos_confirmados_prov', 
+    border.col = 'grey30',
+    scale = 7,
+    alpha = 0.6,
+    border.alpha = 0.1,
+    border.lwd = 0.3,
     palette = 'YlOrRd',
-    style = 'jenks', 
-    legend.show = T, id = 'DPA_DESPRO',
-    popup.vars = c("Casos" = "casos_confirmados_prov", "Fallecidos" = "fallecidos"),
-    popup.format = list(digits = 0)
-  ) 
-  # tm_shape(provincias_plot %>% st_centroid(of_largest_polygon = T)) +
-  # tm_dots(
-  #   group = 'Falleciods por Provincia', 
-  #   size = 'fallecidos', id = NULL, perceptual = T,
-  #   popup.vars = c("Provincia" = "DPA_DESPRO", "Fallecidos" = "fallecidos") 
-  # )
+    style = 'jenks',
+    perceptual = T,
+    legend.col.show = T, id = 'casos_confirmados_prov',
+    popup.vars = c("Provincia" = "DPA_DESPRO","Casos" = "casos_confirmados_prov", "Fallecidos" = "fallecidos"),
+    popup.format = list(digits = 0),
+    legend.size.show = F,
+  )
 ```
 
 ## Casos por Cantón 
@@ -502,30 +502,37 @@ tm_shape(provincias) +
 Casos al `r format(max(cantones_casos$fecha_hora), '%d de %B, %Y %H:%M')`
 
 ```{r, include = F}
-cantones_label = cantones_casos %>% filter(fecha == max(fecha)) %>%  st_cast('POLYGON')
+cantones_plot = cantones_casos %>% 
+  st_centroid(of_largest_polygon = T) %>% 
+  filter(fecha == max(fecha))
 tmap_mode('view')
 ```
 
 ```{r, echo = F, out.width='100%'}
 tm_shape(cantones) +
   tm_polygons(
-    alpha = 0, border.col = 'white', border.alpha = 0.5, 
+    alpha = 0, border.col = 'white', border.alpha = 0.8, border.lwd = 2,
     popup.vars = NULL, group = 'Límite cantonal'
   ) +
-  tm_shape(cantones_casos %>% filter(fecha == max(fecha))) +
-  tm_polygons(
+  tm_shape(cantones_plot) +
+  tm_bubbles(
     group = 'Casos confirmados por Cantón',
-    title = 'Casos Confirmados',
-    col = 'casos_confirmados', 
-    alpha = 0.8,
-    border.col = 'white',
-    border.alpha = 0.5,
-    lwd = 1,
+    title.col = 'Casos Confirmados',
+    col = 'casos_confirmados',
+    size = 'casos_confirmados', 
+    border.col = 'grey30',
+    scale = 7,
+    alpha = 0.6,
+    border.alpha = 0.1,
+    border.lwd = 0.3,
     palette = 'YlOrRd',
-    style = 'jenks', 
-    legend.show = T, id = 'DPA_DESCAN',
-    popup.vars = c("Casos" = "casos_confirmados", "Provincia" = "DPA_DESPRO")
-  ) 
+    style = 'jenks',
+    perceptual = T,
+    legend.col.show = T, id = 'casos_confirmados',
+    popup.vars = c("Cantón" = "DPA_DESCAN", "Provincia" = "DPA_DESPRO","Casos" = "casos_confirmados"),
+    popup.format = list(digits = 0),
+    legend.size.show = F,
+  )
 ```
 
 ## Sobre el Sitio

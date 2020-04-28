@@ -41,7 +41,7 @@ g2 = ggplot(casos_nacional, aes(x = fecha, y = casos_confirmados)) +
   geom_col(aes(fill = casos_confirmados)) +
   geom_text(
     aes(label = casos_confirmados, color = casos_confirmados), 
-    nudge_y = 600, size = 7, fontface = 'bold', angle = 90
+    nudge_y = 700, size = 7, fontface = 'bold', angle = 90
   ) +
   scale_fill_gradientn(colors = palette, breaks = breaks$brks[2:6]) +
   scale_color_gradientn(colors = palette, breaks = breaks$brks[2:6]) +
@@ -52,7 +52,7 @@ g2 = ggplot(casos_nacional, aes(x = fecha, y = casos_confirmados)) +
 
 library(gganimate)
 g2_anim = g2 + transition_manual(fecha, cumulative = T) 
-anim = animate(g2_anim, height = 500, width = 1200)
+anim = animate(g2_anim, height = 700, width = 1400)
 
 library(magick)
 a = image_read('covid_prov.gif')
